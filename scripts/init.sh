@@ -116,6 +116,10 @@ if [ ! -f ".env.local" ]; then
   echo
   echo "NEXT_PUBLIC_API_URL=your_api_url" > .env.local
   echo "NEXT_PUBLIC_GA_ID=your_google_analytics_id" >> .env.local
+else
+  echo
+  echo "[5/6] .env.local 파일이 이미 있으니 생성하지 않을게요"
+  echo
 fi
 
 if [ $? -eq 0 ]; then
@@ -124,6 +128,10 @@ if [ $? -eq 0 ]; then
   echo
   rm -rf ./setup
   rm -rf ./scripts
+else 
+  echo
+  echo "[6/6] 어라.. 임시 파일이 없네요?"
+  echo
 fi
 
 echo
