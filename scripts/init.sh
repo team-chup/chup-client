@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "GSM template for Next.js"
 echo "아키텍쳐를 선택해주세요"
 echo
@@ -12,7 +14,7 @@ print_options() {
   local idx=0
   for opt in "${options[@]}"; do
     if [ $idx -eq $selected ]; then
-      echo "❯ $opt"
+      echo "> $opt"
     else
       echo "  $opt"
     fi
@@ -80,10 +82,10 @@ cp -R "./setup/$STRUCTURE/src/"* ./src/
 
 
 spinner() {
-  local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local frames='-\|/'
   local pid=$1
   local i=0
-  tput civis 
+  tput civis
   while kill -0 $pid 2>/dev/null; do
     i=$(( (i+1) % ${#frames} ))
     printf "\r %c  [4/6] 패키지 설치..." "${frames:$i:1}"
