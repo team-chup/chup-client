@@ -1,11 +1,62 @@
-STRUCTURE=$(whiptail --title "GSM template for Next.js" --menu "\n아키텍쳐 선택 ㄱㄱ" 15 60 2 \
-  "ATOMIC" "components, lib, ..." \
-  "FSD" "features, entities, ..." 3>&1 1>&2 2>&3)
+echo "GSM template for Next.js"
+echo "아키텍쳐를 선택해주세요"
+echo
 
-if [ $? -ne 0 ]; then
-  echo "설치가 취소되었습니다"
-  exit 1
-fi
+options=("atomic" "fsd")
+selected=0
+total=${#options[@]}
+
+tput civis
+
+print_options() {
+  local idx=0
+  for opt in "${options[@]}"; do
+    if [ $idx -eq $selected ]; then
+      echo "❯ $opt"
+    else
+      echo "  $opt"
+    fi
+    idx=$((idx + 1))
+  done
+}
+
+while true; do
+  tput sc
+  
+  print_options
+  
+  read -sn1 key
+
+  tput rc
+  for ((i=0; i<$total; i++)); do
+    tput el
+    tput cud1
+  done
+  tput rc
+
+  case $key in
+    "A")
+      if [ $selected -gt 0 ]; then
+        selected=$((selected - 1))
+      fi
+      ;;
+    "B")
+      if [ $selected -lt $((total - 1)) ]; then
+        selected=$((selected + 1))
+      fi
+      ;;
+    "")
+      STRUCTURE=${options[$selected]}
+      break
+      ;;
+  esac
+done
+
+tput cnorm
+
+echo
+echo "${STRUCTURE} 구조로 설치를 시작합니다"
+echo
 
 if [ -d "./src" ]; then
   echo "기존 src 디렉토리 삭제..."
@@ -40,4 +91,3 @@ echo
 echo "설치가 완료되었습니다!"
 echo ".env.local 파일의 환경 변수를 실제 값으로 수정해주세요"
 echo
-
