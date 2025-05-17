@@ -55,35 +55,43 @@ done
 tput cnorm
 
 echo
-echo "${STRUCTURE} 구조로 설치를 시작합니다"
+echo "[0/6] ${STRUCTURE} 구조로 설치를 시작합니다"
 echo
 
 if [ -d "./src" ]; then
-  echo "기존 src 디렉토리 삭제..."
+  echo
+  echo "[0/6] 기존 src 디렉토리 삭제..."
+  echo
   rm -rf ./src
 fi
 
-echo "tsconfig.json 복사..."
+echo "[1/6] tsconfig.json 복사..."
+echo
 cp "./setup/$STRUCTURE/tsconfig.json" ./tsconfig.json
 
-echo ".prettierrc 복사..."
+echo "[2/6] .prettierrc 복사..."
+echo
 cp "./setup/$STRUCTURE/.prettierrc" ./.prettierrc
 
-echo "$STRUCTURE 구조 복사..."
+echo "[3/6] $STRUCTURE 구조 복사..."
+echo
 mkdir -p src
 cp -R "./setup/$STRUCTURE/src/"* ./src/
 
-echo "패키지 설치..."
+echo "[4/6] 패키지 설치..."
+echo
 npm install
 
 if [ ! -f ".env.local" ]; then
-  echo "환경 변수 파일 생성..."
+  echo "[5/6] 환경 변수 파일 생성..."
+  echo
   echo "NEXT_PUBLIC_API_URL=your_api_url" > .env.local
   echo "NEXT_PUBLIC_GA_ID=your_google_analytics_id" >> .env.local
 fi
 
 if [ $? -eq 0 ]; then
-  echo "임시 파일 정리..."
+  echo "[6/6] 임시 파일 정리..."
+  echo
   rm -rf ./setup
 fi
 
