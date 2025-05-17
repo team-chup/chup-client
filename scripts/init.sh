@@ -1,5 +1,3 @@
-#!/bin/bash
-
 if [ -z "$1" ]; then
   echo "bash scripts/init.sh [atomic|fsd]"
   exit 1
@@ -33,6 +31,11 @@ if [ ! -f ".env.local" ]; then
   echo "create .env.local"
   echo "NEXT_PUBLIC_API_URL=your_api_url" > .env.local
   echo "NEXT_PUBLIC_GA_ID=your_google_analytics_id" >> .env.local
+fi
+
+if [ $? -eq 0 ]; then
+  echo "remove setup directory"
+  rm -rf ./setup
 fi
 
 echo "완료되었습니다!"
