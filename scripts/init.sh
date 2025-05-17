@@ -82,17 +82,16 @@ echo "[4/6] 패키지 설치..."
 echo
 
 spinner() {
+  local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   local pid=$1
-  local delay=0.1
-  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-    local temp=${spinstr#?}
-    printf " %c  Installing packages..." "$spinstr"
-    local spinstr=$temp${spinstr%"$temp"}
-    tput el
-    tput cr
-    sleep $delay
+  local i=0
+  tput civis 
+  while kill -0 $pid 2>/dev/null; do
+    i=$(( (i+1) % ${#frames} ))
+    printf "\r %c  Installing packages..." "${frames:$i:1}"
+    sleep 0.1
   done
+  tput cnorm
   printf "\n"
 }
 
@@ -103,11 +102,10 @@ spinner $pid
 
 wait $pid
 if [ $? -ne 0 ]; then
-  echo "패키지 설치 중 오류가 발생했습니다"
-  echo "npm.log 파일을 확인해주세요"
+  echo "패키지 설치 중 오류가 발생했습니다. npm.log 파일을 확인해주세요"
   exit 1
 else
-  rm npm.log
+  rm -f npm.log
 fi
 
 echo
