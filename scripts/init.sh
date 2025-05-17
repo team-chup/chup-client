@@ -78,8 +78,6 @@ echo
 mkdir -p src
 cp -R "./setup/$STRUCTURE/src/"* ./src/
 
-echo "[4/6] 패키지 설치..."
-echo
 
 spinner() {
   local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
@@ -88,7 +86,7 @@ spinner() {
   tput civis 
   while kill -0 $pid 2>/dev/null; do
     i=$(( (i+1) % ${#frames} ))
-    printf "\r %c  Installing packages..." "${frames:$i:1}"
+    printf "\r %c  [4/6] 패키지 설치..." "${frames:$i:1}"
     sleep 0.1
   done
   tput cnorm
