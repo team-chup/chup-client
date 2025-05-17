@@ -80,9 +80,40 @@ cp -R "./setup/$STRUCTURE/src/"* ./src/
 
 echo "[4/6] 패키지 설치..."
 echo
-npm install
+
+spinner() {
+  local pid=$1
+  local delay=0.1
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    local temp=${spinstr#?}
+    printf " %c  Installing packages..." "$spinstr"
+    local spinstr=$temp${spinstr%"$temp"}
+    tput el
+    tput cr
+    sleep $delay
+  done
+  printf "\n"
+}
+
+npm install > npm.log 2>&1 &
+pid=$!
+
+spinner $pid
+
+wait $pid
+if [ $? -ne 0 ]; then
+  echo "패키지 설치 중 오류가 발생했습니다"
+  echo "npm.log 파일을 확인해주세요"
+  exit 1
+else
+  rm npm.log
+fi
+
+echo
 
 if [ ! -f ".env.local" ]; then
+  echo
   echo "[5/6] 환경 변수 파일 생성..."
   echo
   echo "NEXT_PUBLIC_API_URL=your_api_url" > .env.local
@@ -90,6 +121,7 @@ if [ ! -f ".env.local" ]; then
 fi
 
 if [ $? -eq 0 ]; then
+  echo
   echo "[6/6] 임시 파일 정리..."
   echo
   rm -rf ./setup
