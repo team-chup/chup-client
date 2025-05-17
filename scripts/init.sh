@@ -93,6 +93,7 @@ if [ $? -eq 0 ]; then
   echo "[6/6] 임시 파일 정리..."
   echo
   rm -rf ./setup
+  rm -rf ./scripts
 fi
 
 echo
