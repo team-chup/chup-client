@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { pageview } from '@/lib/gtag';
 import { authConfig } from '@/lib/config/auth';
 
 export function middleware(request: NextRequest) {
@@ -8,12 +7,6 @@ export function middleware(request: NextRequest) {
 
   if (request.nextUrl.pathname.startsWith('/api')) {
     requestHeaders.set('x-custom-header', 'api-request');
-  }
-
-  if (request.nextUrl.pathname !== '/_next/static' && 
-      request.nextUrl.pathname !== '/favicon.ico' &&
-      !request.nextUrl.pathname.includes('.')) {
-    pageview(request.nextUrl.pathname);
   }
 
   const isAuth = request.cookies.has('auth-token');
