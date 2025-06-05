@@ -19,6 +19,7 @@ const UserForm = ({
             name="name"
             type="text"
             required
+            maxLength={4}
             value={formData.name}
             onChange={onChange}
           />
@@ -46,7 +47,10 @@ const UserForm = ({
             id="studentNumber"
             name="studentNumber"
             type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             required
+            maxLength={4}
             value={formData.studentNumber}
             onChange={onChange}
           />
@@ -60,7 +64,10 @@ const UserForm = ({
             id="phoneNumber"
             name="phoneNumber"
             type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
             required
+            maxLength={11}
             value={formData.phoneNumber}
             onChange={onChange}
           />

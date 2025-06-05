@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { instance } from '@/lib/axios';
 import { LoginResponse } from '@/types/auth';
 import { setCookie, removeCookie } from '@/lib/cookie';
+import { toast } from "sonner";
 
 interface HeaderProps {
   isAdmin?: boolean
@@ -47,7 +48,7 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
         const { data } = response;
         
         if (!data.accessToken || !data.refreshToken) {
-          console.error('토큰이 제대로 발급되지 않았습니다.');
+          toast.error('토큰이 제대로 발급되지 않았습니다.');
           return;
         }
 
@@ -60,7 +61,7 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
           ?.split('=')[1];
         
         if (!savedAccessToken) {
-          console.error('토큰이 쿠키에 저장되지 않았습니다.');
+          toast.error('토큰이 쿠키에 저장되지 않았습니다.');
           return;
         }
 
@@ -68,7 +69,7 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
         router.push(nextPage);
 
       } catch (error: any) {
-        console.error('로그인 오류:', error);
+        console.error( error);
         console.error('에러 응답:', error.response?.data);
       }
     },
