@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Building2, Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useGoogleLogin, googleLogout } from '@react-oauth/google';
@@ -13,12 +13,29 @@ interface HeaderProps {
   isAdmin?: boolean
   currentPage?: string
   userName?: string
-  isAuthenticated?: boolean
 }
 
-export function Header({ isAdmin = false, currentPage = "", isAuthenticated = false }: HeaderProps) {
+export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('accessToken='))
+        ?.split('=')[1];
+      
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    
+    const intervalId = setInterval(checkAuth, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
