@@ -28,7 +28,7 @@ export default function RootLayout({
           <QueryProvider>
             <Header />
             {children}
-            <Toaster position="top-center" expand={true} richColors />
+            <Toaster position="bottom-right" expand={true} richColors />
           </QueryProvider>
         </AuthProvider>
       </body>

@@ -8,6 +8,7 @@ import UserForm from '@/components/UserForm';
 import { SignupRequest } from '@/types/auth';
 import { instance } from '@/lib/axios';
 import useFileUpload from '@/hooks/useFileUpload';
+import { toast } from 'sonner';
 
 type ResumeType = 'PDF' | 'LINK';
 
@@ -34,12 +35,11 @@ export default function SignupPage() {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert('PDF 파일만 업로드 가능합니다.');
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('파일 크기는 10MB를 초과할 수 없습니다.');
+      toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
       return;
     }
 
@@ -55,7 +55,7 @@ export default function SignupPage() {
         }
       }));
     } catch (error) {
-      alert('파일 업로드에 실패했습니다.');
+      toast.error('파일 업로드에 실패했습니다.');
     }
   };
 
@@ -119,7 +119,7 @@ export default function SignupPage() {
       }
     } catch (error: any) {
       console.error(error);
-      alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
