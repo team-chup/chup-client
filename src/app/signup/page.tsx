@@ -3,12 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import ResumeUpload from '@/components/ResumeUpload';
+import UserForm from '@/components/UserForm';
 import { SignupRequest } from '@/types/auth';
 import { instance } from '@/lib/axios';
+import useFileUpload from '@/hooks/useFileUpload';
+
+type ResumeType = 'PDF' | 'LINK';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { uploadFile } = useFileUpload();
+  const [resumeType, setResumeType] = useState<ResumeType>('LINK');
+  const [resumeLink, setResumeLink] = useState('');
   const [formData, setFormData] = useState<SignupRequest>({
     name: '',
     email: '',
@@ -20,6 +27,70 @@ export default function SignupPage() {
       url: ''
     }
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('PDF 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('파일 크기는 10MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    setSelectedFile(file);
+    try {
+      const url = await uploadFile(file);
+      setFormData(prev => ({
+        ...prev,
+        resume: {
+          name: file.name,
+          type: 'PDF',
+          url: url
+        }
+      }));
+    } catch (error) {
+      alert('파일 업로드에 실패했습니다.');
+    }
+  };
+
+  const handleResumeTypeChange = (type: ResumeType) => {
+    setResumeType(type);
+    setFormData(prev => ({
+      ...prev,
+      resume: {
+        name: '',
+        type: type,
+        url: type === 'LINK' ? resumeLink : ''
+      }
+    }));
+  };
+
+  const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const link = e.target.value;
+    setResumeLink(link);
+    setFormData(prev => ({
+      ...prev,
+      resume: {
+        name: '외부 이력서 링크',
+        type: 'LINK',
+        url: link
+      }
+    }));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,25 +116,6 @@ export default function SignupPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name.startsWith('resume.')) {
-      const resumeField = name.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        resume: {
-          ...prev.resume,
-          [resumeField]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -75,89 +127,16 @@ export default function SignupPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                이름
-              </label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                이메일
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700">
-                학번
-              </label>
-              <Input
-                id="studentNumber"
-                name="studentNumber"
-                type="text"
-                required
-                value={formData.studentNumber}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-                전화번호
-              </label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                required
-                value={formData.phoneNumber}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="resume.name" className="block text-sm font-medium text-gray-700">
-                이력서 이름
-              </label>
-              <Input
-                id="resume.name"
-                name="resume.name"
-                type="text"
-                required
-                value={formData.resume.name}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="resume.url" className="block text-sm font-medium text-gray-700">
-                이력서 URL
-              </label>
-              <Input
-                id="resume.url"
-                name="resume.url"
-                type="url"
-                required
-                value={formData.resume.url}
-                onChange={handleChange}
-              />
-            </div>
+            <UserForm formData={formData} onChange={handleChange} />
+            
+            <ResumeUpload
+              resumeType={resumeType}
+              resumeLink={resumeLink}
+              selectedFile={selectedFile}
+              onResumeTypeChange={handleResumeTypeChange}
+              onResumeLinkChange={handleResumeLinkChange}
+              onFileChange={handleFileChange}
+            />
 
             <div>
               <Button type="submit" className="w-full">
