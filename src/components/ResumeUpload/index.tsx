@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ResumeUploadProps {
   resumeType: 'PDF' | 'LINK';
@@ -37,7 +38,8 @@ export default function ResumeUpload({
   onResumeTypeChange,
   onResumeLinkChange,
   onFileChange,
-  currentResume
+  currentResume,
+  isUploading
 }: ResumeUploadProps) {
   return (
     <div className="space-y-2">
@@ -67,13 +69,22 @@ export default function ResumeUpload({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-gray-400" />
-                <div>
+                <div className="min-h-[44px] flex flex-col justify-center">
                   {currentResume.type === "PDF" ? (
                     <>
-                      <p className="font-medium">{currentResume.name ? currentResume.name : '파일 업로드'}</p>
-                      <p className="text-sm text-gray-500">
-                        {currentResume.size ? formatFileSize(currentResume.size) : '파일이 업로드되지 않았습니다'}
-                      </p>
+                      {isUploading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-[20px] w-[200px] bg-gray-200" />
+                          <Skeleton className="h-[16px] w-[100px] bg-gray-200" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-medium">{currentResume.name ? currentResume.name : '파일 업로드'}</p>
+                          <p className="text-sm text-gray-500">
+                            {currentResume.size ? formatFileSize(currentResume.size) : '파일이 업로드되지 않았습니다'}
+                          </p>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
@@ -104,10 +115,10 @@ export default function ResumeUpload({
                   htmlFor="resume-upload"
                   className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
                 >
-                      <span className="flex items-center gap-1 hover:underline">
-                        <FileUp className="h-4 w-4" />
-                        파일 선택
-                      </span>
+                  <span className="flex items-center gap-1 hover:underline">
+                    <FileUp className="h-4 w-4" />
+                    파일 선택
+                  </span>
                   <input
                     id="resume-upload"
                     name="resume-upload"
