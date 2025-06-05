@@ -1,17 +1,31 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Building2, Menu, X, Plus } from "lucide-react"
+import { Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { googleLogout } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
 import { removeCookie } from '@/lib/cookie';
+import Logo from '@/assets/images/Logo.png';
+import Image from 'next/image'
 
 interface HeaderProps {
   isAdmin?: boolean
   currentPage?: string
   userName?: string
 }
+
+const studentNavItems = [
+  { name: "채용공고", href: "/", key: "jobs" },
+  { name: "지원현황", href: "/applications", key: "applications" },
+  { name: "프로필", href: "/profile", key: "profile" },
+]
+
+const adminNavItems = [
+  { name: "대시보드", href: "/admin", key: "dashboard" },
+  { name: "학생 관리", href: "/admin/students", key: "students" },
+  { name: "통계", href: "/admin/analytics", key: "analytics" },
+]
 
 export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -42,18 +56,6 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
     router.push('/login');
   }
 
-  const studentNavItems = [
-    { name: "채용공고", href: "/", key: "jobs" },
-    { name: "지원현황", href: "/applications", key: "applications" },
-    { name: "프로필", href: "/profile", key: "profile" },
-  ]
-
-  const adminNavItems = [
-    { name: "대시보드", href: "/admin", key: "dashboard" },
-    { name: "학생 관리", href: "/admin/students", key: "students" },
-    { name: "통계", href: "/admin/analytics", key: "analytics" },
-  ]
-
   const navItems = isAdmin ? adminNavItems : studentNavItems
 
   const isCurrentPage = (key: string) => {
@@ -65,7 +67,16 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center ">
+              <div className="relative w-12 h-12">
+                <Image
+                  src={Logo}
+                  alt="CHUP.today Logo"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  priority
+                />
+              </div>
               <span className="text-xl font-bold text-gray-900">CHUP.today</span>
             </div>
           </div>
