@@ -3,23 +3,62 @@
 import { useState } from "react"
 import { Building2, Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useGoogleLogin, googleLogout } from '@react-oauth/google';
+import { useRouter } from 'next/navigation';
+import { instance } from '@/lib/axios';
+import { LoginResponse } from '@/types/auth';
+import { setCookie, removeCookie } from '@/lib/cookie';
 
 interface HeaderProps {
   isAdmin?: boolean
   currentPage?: string
   userName?: string
-  onLogout?: () => void
+  isAuthenticated?: boolean
 }
 
-export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderProps) {
+export function Header({ isAdmin = false, currentPage = "", isAuthenticated = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const router = useRouter();
+
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const { data } = await instance.post<LoginResponse>('/auth/login', {
+          header: {},
+          body: {
+            oauthToken: tokenResponse.access_token
+          }
+        });
+        
+        setCookie('accessToken', data.accessToken);
+        setCookie('refreshToken', data.refreshToken);
+        
+        if (data.authority === 'TEMP') {
+          router.push('/signup');
+        } else {
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Login failed:', error);
+      }
+    },
+    onError: () => {
+      console.log('Login Failed');
+    }
+  });
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout()
+    googleLogout();
+    removeCookie('accessToken');
+    removeCookie('refreshToken');
+    router.push('/login');
+  }
+
+  const handleAuth = () => {
+    if (isAuthenticated) {
+      handleLogout();
     } else {
-      // 기본 로그아웃 로직
-      console.log("로그아웃")
+      login();
     }
   }
 
@@ -78,8 +117,8 @@ export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderPr
               </Button>
             )}
 
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              로그아웃
+            <Button variant="outline" size="sm" onClick={handleAuth}>
+              {isAuthenticated ? '로그아웃' : '로그인'}
             </Button>
           </nav>
 
@@ -114,8 +153,8 @@ export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderPr
                     공고 등록
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-                  로그아웃
+                <Button variant="outline" size="sm" className="w-full" onClick={handleAuth}>
+                  {isAuthenticated ? '로그아웃' : '로그인'}
                 </Button>
               </div>
             </nav>

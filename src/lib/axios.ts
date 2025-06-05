@@ -1,7 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { authConfig } from './config/auth';
+import { setCookie, removeCookie } from './cookie';
 
-export const baseURL = process.env.NEXT_PUBLIC_API_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const instance = axios.create({
   baseURL,
@@ -13,7 +14,11 @@ export const instance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('accessToken='))
+      ?.split('=')[1];
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,7 +40,11 @@ instance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('refreshToken='))
+          ?.split('=')[1];
+
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
@@ -45,13 +54,13 @@ instance.interceptors.response.use(
         });
 
         const { token } = response.data;
-        localStorage.setItem('token', token);
+        setCookie('accessToken', token);
 
         originalRequest.headers.Authorization = `Bearer ${token}`;
         return instance(originalRequest);
       } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        removeCookie('accessToken');
+        removeCookie('refreshToken');
         window.location.href = authConfig.signInPage;
         return Promise.reject(error);
       }
