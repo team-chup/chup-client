@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { User, Save, Edit } from "lucide-react"
+import { User, Save, Edit, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,7 @@ import ResumeUpload from "@/components/ResumeUpload"
 import { formatFileSize } from "@/utils/formatFileSize"
 import { signupSchema } from "@/schemas/user"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
@@ -31,15 +32,13 @@ export default function ProfilePage() {
   const [resumeLink, setResumeLink] = useState('')
   const [shakingFields, setShakingFields] = useState<string[]>([])
 
-  // 진동 효과를 위한 CSS 클래스
   const shakeAnimation = "animate-shake"
 
-  // 진동 효과를 추가하는 함수
   const addShakeEffect = (fieldName: string) => {
     setShakingFields(prev => [...prev, fieldName])
     setTimeout(() => {
       setShakingFields(prev => prev.filter(field => field !== fieldName))
-    }, 500) // 0.5초 후에 진동 효과 제거
+    }, 300)
   }
 
   useEffect(() => {
@@ -61,7 +60,74 @@ export default function ProfilePage() {
   }, [profile])
 
   if (isLoading || !profileData) {
-    return <div>로딩 중...</div>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
+              <p className="text-gray-600 mt-1">개인정보와 설정을 관리하세요</p>
+            </div>
+            <Button
+              disabled
+              variant="outline"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              편집
+            </Button>
+          </div>
+
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  기본 정보
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">이름</label>
+                    <Skeleton className="h-10 w-full bg-gray-200" />
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">학번</label>
+                    <Skeleton className="h-10 w-full bg-gray-200" />
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">이메일</label>
+                    <Skeleton className="h-10 w-full bg-gray-200" />
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">전화번호</label>
+                    <Skeleton className="h-10 w-full bg-gray-200" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">이력서</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <Skeleton className="h-5 w-[200px] bg-gray-200" />
+                    <Skeleton className="h-4 w-[150px] bg-gray-200 mt-1" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -281,6 +347,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-gray-400" />
                   <div>
                     {profileData.resume.type === "PDF" ? (
                       <>
