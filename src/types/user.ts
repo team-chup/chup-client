@@ -4,6 +4,7 @@ export type Resume = {
   name: string;
   type: 'LINK' | 'PDF';
   url: string;
+  size?: number;
 };
 
 export type UserProfile = {

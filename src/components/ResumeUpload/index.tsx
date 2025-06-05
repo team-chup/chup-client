@@ -1,132 +1,139 @@
-import { Input } from '@/components/ui/input';
-import { X, Loader2 } from 'lucide-react';
+"use client"
 
-type ResumeType = 'PDF' | 'LINK';
+import { FileUp, Upload, FileText } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface ResumeUploadProps {
-  resumeType: ResumeType;
+  resumeType: 'PDF' | 'LINK';
   resumeLink: string;
   selectedFile: File | null;
-  onResumeTypeChange: (type: ResumeType) => void;
+  onResumeTypeChange: (type: 'PDF' | 'LINK') => void;
   onResumeLinkChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileClear: () => void;
-  isUploading?: boolean;
+  isUploading: boolean;
+  currentResume?: {
+    name: string;
+    type: 'PDF' | 'LINK';
+    url: string;
+    size?: number;
+  };
 }
 
-const ResumeUpload = ({
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
+
+export default function ResumeUpload({
   resumeType,
   resumeLink,
-  selectedFile,
   onResumeTypeChange,
   onResumeLinkChange,
   onFileChange,
-  onFileClear,
-  isUploading = false,
-}: ResumeUploadProps) => {
-  const handleClear = () => {
-    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = '';
-    }
-    onFileClear();
-  };
-
+  currentResume
+}: ResumeUploadProps) {
   return (
-    <div>
-      <div className="flex space-x-4 mb-4">
-        <button
-          type="button"
-          className={`px-4 py-2 rounded ${
-            resumeType === 'LINK' 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => onResumeTypeChange('LINK')}
-          disabled={isUploading}
+    <div className="space-y-2">
+      <div>
+        <RadioGroup
+          value={resumeType}
+          onValueChange={(value: 'PDF' | 'LINK') => onResumeTypeChange(value)}
+          className="flex gap-6 mt-2"
         >
-          LINK
-        </button>
-        <button
-          type="button"
-          className={`px-4 py-2 rounded ${
-            resumeType === 'PDF' 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => onResumeTypeChange('PDF')}
-          disabled={isUploading}
-        >
-          PDF
-        </button>
+          <div className="flex items-center gap-3">
+            <RadioGroupItem value="PDF" id="pdf-type" />
+            <Label htmlFor="pdf-type" className="text-sm font-normal">
+              PDF 파일
+            </Label>
+          </div>
+          <div className="flex items-center gap-3">
+            <RadioGroupItem value="LINK" id="link-type" />
+            <Label htmlFor="link-type" className="text-sm font-normal">
+              링크
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
+      {currentResume && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-gray-400" />
+                <div>
+                  {currentResume.type === "PDF" ? (
+                    <>
+                      <p className="font-medium">{currentResume.name ? currentResume.name : '파일 업로드'}</p>
+                      <p className="text-sm text-gray-500">
+                        {currentResume.size ? formatFileSize(currentResume.size) : '파일이 업로드되지 않았습니다'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium">이력서 링크</p>
+                      <p className="text-sm text-blue-600 hover:underline cursor-pointer">
+                        {currentResume.url
+                          ? currentResume.url.length > 40
+                            ? `${currentResume.url.slice(0, 37)}...`
+                            : currentResume.url
+                          : "URL이 설정되지 않았습니다"}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {resumeType === 'LINK' ? (
+      {resumeType === "PDF" ? (
         <div>
-          <Input
-            type="url"
-            name="resumeLink"
-            placeholder="이력서 링크를 입력하세요"
-            value={resumeLink}
-            onChange={onResumeLinkChange}
-            required={resumeType === 'LINK'}
-            disabled={isUploading}
-          />
-          <p className="mt-2 text-sm text-gray-500">
-            링크를 입력해주세요
-          </p>
+          <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+            <div className="space-y-1 text-center">
+              <Upload className="mx-auto h-8 w-8 text-gray-400" />
+              <div className="flex text-sm text-gray-600">
+                <label
+                  htmlFor="resume-upload"
+                  className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
+                >
+                      <span className="flex items-center gap-1 hover:underline">
+                        <FileUp className="h-4 w-4" />
+                        파일 선택
+                      </span>
+                  <input
+                    id="resume-upload"
+                    name="resume-upload"
+                    type="file"
+                    accept=".pdf"
+                    className="sr-only"
+                    onChange={onFileChange}
+                  />
+                </label>
+                <p className="pl-1">또는 드래그 앤 드롭</p>
+              </div>
+              <p className="text-xs text-gray-500">PDF 파일만 업로드 가능 (최대 10MB)</p>
+            </div>
+          </div>
         </div>
       ) : (
         <div>
-          <div className="relative">
-            <Input
-              type="text"
-              name="resumeFileName"
-              readOnly
-              value={selectedFile?.name || ''}
-              placeholder="PDF 파일을 선택해주세요"
-              onClick={() => !isUploading && document.getElementById('file-upload')?.click()}
-              className="cursor-pointer pr-10"
-              disabled={isUploading}
-            />
-            {selectedFile && !isUploading && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
-              >
-                <X className="h-4 w-4 text-gray-500" />
-              </button>
-            )}
-            {isUploading && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-1">
-                <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-              </div>
-            )}
-            <input
-              id="file-upload"
-              name="resumeFile"
-              type="file"
-              accept=".pdf"
-              onChange={onFileChange}
-              required={resumeType === 'PDF'}
-              className="hidden"
-              disabled={isUploading}
-            />
-          </div>
-          {selectedFile ? (
-            <p className="mt-2 text-sm text-gray-500">
-              PDF 파일만 가능, {(selectedFile.size / (1024 * 1024)).toFixed(2)}MB/10MB
-            </p>
-          ) : (
-            <p className="mt-2 text-sm text-gray-500">
-              PDF 파일만 가능, 최대 10MB
-            </p>
-          )}
+          <Input
+            id="resumeUrl"
+            value={resumeLink}
+            onChange={onResumeLinkChange}
+            placeholder="https://drive.google.com/... 또는 https://github.com/..."
+            className="mt-2"
+          />
         </div>
       )}
     </div>
   );
-};
-
-export default ResumeUpload;
+}

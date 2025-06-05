@@ -6,17 +6,15 @@ import { Button } from '@/components/ui/button';
 import ResumeUpload from '@/components/ResumeUpload';
 import UserForm from '@/components/UserForm';
 import { SignupRequest } from '@/types/auth';
+import { signup } from '@/api/signup';
 import useFileUpload from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
 import { signupSchema } from '@/schemas/signup';
-import { signup } from '@/api/signup';
-
-type ResumeType = 'PDF' | 'LINK';
 
 export default function SignupPage() {
   const router = useRouter();
   const { uploadFile } = useFileUpload();
-  const [resumeType, setResumeType] = useState<ResumeType>('LINK');
+  const [resumeType, setResumeType] = useState<'PDF' | 'LINK'>('LINK');
   const [resumeLink, setResumeLink] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<SignupRequest>({
@@ -44,6 +42,7 @@ export default function SignupPage() {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
+      toast.error('PDF 파일만 업로드 가능합니다.');
       return;
     }
 
@@ -65,6 +64,7 @@ export default function SignupPage() {
           url: url
         }
       }));
+      toast.success('이력서가 성공적으로 업로드되었습니다.');
     } catch (error) {
       toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);
@@ -73,7 +73,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleResumeTypeChange = (type: ResumeType) => {
+  const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
     setResumeType(type);
     setFormData(prev => ({
       ...prev,
@@ -151,7 +151,10 @@ export default function SignupPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <UserForm formData={formData} onChange={handleChange} />
-            
+
+            <label htmlFor="resume" className="block text-sm font-medium text-gray-700">
+              이력서
+            </label>
             <ResumeUpload
               resumeType={resumeType}
               resumeLink={resumeLink}
@@ -161,6 +164,7 @@ export default function SignupPage() {
               onFileChange={handleFileChange}
               onFileClear={handleFileClear}
               isUploading={isUploading}
+              currentResume={formData.resume}
             />
 
             <div>

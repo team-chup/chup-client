@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { User, Upload, Save, Edit, FileText } from "lucide-react"
+import { User, Save, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,30 @@ import { getUserProfile, updateUserProfile } from "@/api/user"
 import { UserProfile } from "@/types/user"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
+import useFileUpload from "@/hooks/useFileUpload"
+import ResumeUpload from "@/components/ResumeUpload"
+
+// 파일 크기를 읽기 쉬운 형태로 변환하는 함수
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
+  const { uploadFile } = useFileUpload()
+  const [isUploading, setIsUploading] = useState(false)
   const { data: profile, isLoading } = useQuery<UserProfile>({
     queryKey: ['profile'],
     queryFn: getUserProfile
   })
 
   const [profileData, setProfileData] = useState<UserProfile | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [resumeLink, setResumeLink] = useState('')
 
   useEffect(() => {
     if (profile) {
@@ -29,8 +44,13 @@ export default function ProfilePage() {
         email: profile.email,
         phoneNumber: profile.phoneNumber,
         authority: profile.authority,
-        resume: profile.resume
-      })
+        resume: {
+          name: profile.resume.name || '',
+          type: profile.resume.type || 'LINK',
+          url: profile.resume.url || ''
+        }
+      });
+      setResumeLink(profile.resume.url || '');
     }
   }, [profile])
 
@@ -55,25 +75,84 @@ export default function ProfilePage() {
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file && profileData) {
-      setProfileData({
-        ...profileData,
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error('PDF 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setIsUploading(true);
+    
+    try {
+      const url = await uploadFile(file);
+      setProfileData(prev => prev ? ({
+        ...prev,
         resume: {
-          ...profileData.resume,
           name: file.name,
-          type: 'PDF'
+          type: 'PDF',
+          url: url,
+          size: file.size
         }
-      })
+      }) : null);
+      toast.success('이력서가 성공적으로 업로드되었습니다.');
+    } catch (error) {
+      toast.error('파일 업로드에 실패했습니다.');
+      setSelectedFile(null);
+    } finally {
+      setIsUploading(false);
     }
   }
 
+  const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const link = e.target.value;
+    setResumeLink(link);
+    setProfileData(prev => prev ? ({
+      ...prev,
+      resume: {
+        name: 'LINK',
+        type: 'LINK',
+        url: link
+      }
+    }) : null);
+  };
+
+  const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
+    if (!profileData) return;
+    setProfileData({
+      ...profileData,
+      resume: {
+        name: '',
+        type: type,
+        url: type === 'LINK' ? resumeLink : ''
+      }
+    });
+  };
+
+  const handleFileClear = () => {
+    setSelectedFile(null);
+    if (!profileData) return;
+    setProfileData({
+      ...profileData,
+      resume: {
+        name: '',
+        type: 'PDF',
+        url: ''
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
@@ -81,7 +160,7 @@ export default function ProfilePage() {
           </div>
           <Button
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
-            className={isEditing ? "bg-blue-600 hover:bg-blue-700" : ""}
+            className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
             variant={isEditing ? "default" : "outline"}
           >
             {isEditing ? (
@@ -99,7 +178,6 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid gap-6">
-          {/* Profile Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -151,137 +229,44 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Resume */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                이력서
-              </CardTitle>
+              <CardTitle className="flex items-center gap-2">이력서</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="block mb-1 font-medium text-gray-700">현재 이력서</label>
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg mt-2">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-gray-400" />
-                    <div>
-                      {profileData.resume.type === "PDF" ? (
-                        <>
-                          <p className="font-medium">{profileData.resume.name}</p>
-                          <p className="text-sm text-gray-500">업로드됨: 2024-01-01</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="font-medium">이력서 링크</p>
-                          <p className="text-sm text-blue-600 hover:underline cursor-pointer">
-                            {profileData.resume.url || "링크가 설정되지 않았습니다"}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
+            <CardContent>
+              {isEditing ? (
+                <ResumeUpload
+                  resumeType={profileData.resume.type}
+                  resumeLink={resumeLink}
+                  selectedFile={selectedFile}
+                  onResumeTypeChange={handleResumeTypeChange}
+                  onResumeLinkChange={handleResumeLinkChange}
+                  onFileChange={handleFileChange}
+                  onFileClear={handleFileClear}
+                  isUploading={isUploading}
+                  currentResume={profileData.resume}
+                />
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div>
                     {profileData.resume.type === "PDF" ? (
-                      <Button variant="outline" size="sm">
-                        다운로드
-                      </Button>
+                      <>
+                        <p className="font-medium">{profileData.resume.name || "이력서가 없습니다"}</p>
+                        {profileData.resume.size && (
+                          <p className="text-sm text-gray-500">
+                            {(profileData.resume.size / (1024 * 1024)).toFixed(2)}MB
+                          </p>
+                        )}
+                      </>
                     ) : (
-                      <Button variant="outline" size="sm">
-                        링크 열기
-                      </Button>
+                      <>
+                        <p className="font-medium">이력서 링크</p>
+                        <p className="text-sm text-blue-600 hover:underline cursor-pointer">
+                          {profileData.resume.url || "링크가 설정되지 않았습니다"}
+                        </p>
+                      </>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {isEditing && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block mb-1 font-medium text-gray-700">이력서 유형 선택</label>
-                    <div className="flex gap-6 mt-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          id="file-type"
-                          name="resumeType"
-                          value="PDF"
-                          checked={profileData.resume.type === "PDF"}
-                          onChange={(e) => handleInputChange("resume", { 
-                            ...profileData.resume, 
-                            type: e.target.value as "PDF" | "LINK" 
-                          })}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <label htmlFor="file-type" className="text-sm font-normal">
-                          PDF 파일 업로드
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          id="link-type"
-                          name="resumeType"
-                          value="LINK"
-                          checked={profileData.resume.type === "LINK"}
-                          onChange={(e) => handleInputChange("resume", { 
-                            ...profileData.resume, 
-                            type: e.target.value as "PDF" | "LINK" 
-                          })}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <label htmlFor="link-type" className="text-sm font-normal">
-                          온라인 링크
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {profileData.resume.type === "PDF" ? (
-                    <div>
-                      <label className="block mb-1 font-medium text-gray-700">새 이력서 업로드</label>
-                      <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
-                        <div className="space-y-1 text-center">
-                          <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label
-                              htmlFor="resume-upload"
-                              className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
-                            >
-                              <span>파일 선택</span>
-                              <input
-                                id="resume-upload"
-                                name="resume-upload"
-                                type="file"
-                                accept=".pdf"
-                                className="sr-only"
-                                onChange={handleFileUpload}
-                              />
-                            </label>
-                            <p className="pl-1">또는 드래그 앤 드롭</p>
-                          </div>
-                          <p className="text-xs text-gray-500">PDF 파일만 업로드 가능 (최대 10MB)</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label htmlFor="resumeUrl" className="block mb-1 font-medium text-gray-700">이력서 링크</label>
-                      <Input
-                        id="resumeUrl"
-                        value={profileData.resume.url}
-                        onChange={(e) => handleInputChange("resume", { 
-                          ...profileData.resume, 
-                          url: e.target.value 
-                        })}
-                        placeholder="https://drive.google.com/... 또는 https://github.com/..."
-                        className="mt-2"
-                      />
-                      <p className="text-sm text-gray-500 mt-1">
-                        Google Drive, GitHub, 개인 포트폴리오 사이트 등의 링크를 입력하세요
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
             </CardContent>
@@ -289,5 +274,5 @@ export default function ProfilePage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
