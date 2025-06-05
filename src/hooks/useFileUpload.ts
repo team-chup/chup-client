@@ -15,7 +15,7 @@ const useFileUpload = () => {
         const formData = new FormData();
         formData.append('file', file);
   
-        const { data } = await instance.post<FileUploadResponse>('/file', formData, {
+        const { data } = await instance.post<FileUploadResponse>('/file/resume', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: accessToken || '',

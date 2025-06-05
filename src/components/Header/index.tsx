@@ -23,27 +23,40 @@ export function Header({ isAdmin = false, currentPage = "", isAuthenticated = fa
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const { data } = await instance.post<LoginResponse>('/auth/login', {
-          header: {},
-          body: {
-            oauthToken: tokenResponse.access_token
-          }
+        const response = await instance.post<LoginResponse>('/auth/login', {
+          oauthToken: tokenResponse.access_token
         });
         
+        const { data } = response;
+        
+        if (!data.accessToken || !data.refreshToken) {
+          console.error('토큰이 제대로 발급되지 않았습니다.');
+          return;
+        }
+
         setCookie('accessToken', data.accessToken);
         setCookie('refreshToken', data.refreshToken);
         
-        if (data.authority === 'TEMP') {
-          router.push('/signup');
-        } else {
-          router.push('/');
+        const savedAccessToken = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('accessToken='))
+          ?.split('=')[1];
+        
+        if (!savedAccessToken) {
+          console.error('토큰이 쿠키에 저장되지 않았습니다.');
+          return;
         }
-      } catch (error) {
-        console.error('Login failed:', error);
+
+        const nextPage = data.authority === 'TEMP' ? '/signup' : '/';
+        router.push(nextPage);
+
+      } catch (error: any) {
+        console.error('로그인 오류:', error);
+        console.error('에러 응답:', error.response?.data);
       }
     },
     onError: () => {
-      console.log('Login Failed');
+      console.error('Google 로그인 실패');
     }
   });
 

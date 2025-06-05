@@ -100,10 +100,15 @@ export default function SignupPage() {
         .split('; ')
         .find(row => row.startsWith('accessToken='))
         ?.split('=')[1];
+
+      if (!accessToken) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
       
       const { data } = await instance.post('/user/signup', {
-        header: {
-          Authorization: accessToken
+        headers: {
+          Authorization: `Bearer ${accessToken}`
         },
         body: formData
       });
@@ -111,8 +116,9 @@ export default function SignupPage() {
       if (data) {
         router.push('/');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
+    } catch (error: any) {
+      console.error( error);
+      alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 

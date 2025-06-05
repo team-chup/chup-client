@@ -49,8 +49,10 @@ instance.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        const response = await instance.post<{ token: string }>('/auth/refresh', {
-          refreshToken,
+        const response = await instance.post<{ token: string }>('/auth/refresh', null, {
+          headers: {
+            RefreshToken: refreshToken
+          }
         });
 
         const { token } = response.data;
