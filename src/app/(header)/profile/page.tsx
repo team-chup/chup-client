@@ -13,15 +13,8 @@ import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import useFileUpload from "@/hooks/useFileUpload"
 import ResumeUpload from "@/components/ResumeUpload"
+import { formatFileSize } from "@/utils/formatFileSize"
 
-// 파일 크기를 읽기 쉬운 형태로 변환하는 함수
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-};
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
@@ -254,7 +247,7 @@ export default function ProfilePage() {
                         <p className="font-medium">{profileData.resume.name || "이력서가 없습니다"}</p>
                         {profileData.resume.size && (
                           <p className="text-sm text-gray-500">
-                            {(profileData.resume.size / (1024 * 1024)).toFixed(2)}MB
+                            {profileData.resume.size ? formatFileSize(profileData.resume.size) : '파일이 업로드되지 않았습니다'}
                           </p>
                         )}
                       </>
