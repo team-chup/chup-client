@@ -1,4 +1,7 @@
-import { Building2, Menu, Plus } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import { Building2, Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface HeaderProps {
@@ -9,6 +12,8 @@ interface HeaderProps {
 }
 
 export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
   const handleLogout = () => {
     if (onLogout) {
       onLogout()
@@ -44,6 +49,11 @@ export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderPr
             <div className="flex items-center space-x-2">
               <Building2 className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">CHUP.today</span>
+              {/* {isAdmin && (
+                <Badge variant="outline" className="text-blue-700 border-blue-200">
+                  관리자
+                </Badge>
+              )} */}
             </div>
           </div>
 
@@ -73,13 +83,16 @@ export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderPr
             </Button>
           </nav>
 
+          {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
 
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
           <div className="absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-40">
             <nav className="flex flex-col space-y-4 py-4">
               {navItems.map((item) => (
@@ -107,6 +120,7 @@ export function Header({ isAdmin = false, currentPage = "", onLogout }: HeaderPr
               </div>
             </nav>
           </div>
+        )}
       </div>
     </header>
   )
