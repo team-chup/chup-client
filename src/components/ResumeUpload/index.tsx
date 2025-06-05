@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 
 type ResumeType = 'PDF' | 'LINK';
 
@@ -11,6 +11,7 @@ interface ResumeUploadProps {
   onResumeLinkChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileClear: () => void;
+  isUploading?: boolean;
 }
 
 const ResumeUpload = ({
@@ -21,6 +22,7 @@ const ResumeUpload = ({
   onResumeLinkChange,
   onFileChange,
   onFileClear,
+  isUploading = false,
 }: ResumeUploadProps) => {
   const handleClear = () => {
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -41,6 +43,7 @@ const ResumeUpload = ({
               : 'bg-gray-200 text-gray-700'
           }`}
           onClick={() => onResumeTypeChange('LINK')}
+          disabled={isUploading}
         >
           LINK
         </button>
@@ -52,6 +55,7 @@ const ResumeUpload = ({
               : 'bg-gray-200 text-gray-700'
           }`}
           onClick={() => onResumeTypeChange('PDF')}
+          disabled={isUploading}
         >
           PDF
         </button>
@@ -66,6 +70,7 @@ const ResumeUpload = ({
             value={resumeLink}
             onChange={onResumeLinkChange}
             required={resumeType === 'LINK'}
+            disabled={isUploading}
           />
           <p className="mt-2 text-sm text-gray-500">
             링크를 입력해주세요
@@ -80,10 +85,11 @@ const ResumeUpload = ({
               readOnly
               value={selectedFile?.name || ''}
               placeholder="PDF 파일을 선택해주세요"
-              onClick={() => document.getElementById('file-upload')?.click()}
+              onClick={() => !isUploading && document.getElementById('file-upload')?.click()}
               className="cursor-pointer pr-10"
+              disabled={isUploading}
             />
-            {selectedFile && (
+            {selectedFile && !isUploading && (
               <button
                 type="button"
                 onClick={handleClear}
@@ -91,6 +97,11 @@ const ResumeUpload = ({
               >
                 <X className="h-4 w-4 text-gray-500" />
               </button>
+            )}
+            {isUploading && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-1">
+                <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+              </div>
             )}
             <input
               id="file-upload"
@@ -100,6 +111,7 @@ const ResumeUpload = ({
               onChange={onFileChange}
               required={resumeType === 'PDF'}
               className="hidden"
+              disabled={isUploading}
             />
           </div>
           {selectedFile ? (

@@ -9,6 +9,7 @@ import { SignupRequest } from '@/types/auth';
 import { instance } from '@/lib/axios';
 import useFileUpload from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
+import { signupSchema } from '@/schemas/signup';
 
 type ResumeType = 'PDF' | 'LINK';
 
@@ -17,6 +18,7 @@ export default function SignupPage() {
   const { uploadFile } = useFileUpload();
   const [resumeType, setResumeType] = useState<ResumeType>('LINK');
   const [resumeLink, setResumeLink] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<SignupRequest>({
     name: '',
     email: '',
@@ -29,6 +31,13 @@ export default function SignupPage() {
     }
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const isFormValid = () => {
+    if (isUploading) return false;
+    
+    const result = signupSchema.safeParse(formData);
+    return result.success;
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,6 +53,8 @@ export default function SignupPage() {
     }
 
     setSelectedFile(file);
+    setIsUploading(true);
+    
     try {
       const url = await uploadFile(file);
       setFormData(prev => ({
@@ -56,6 +67,9 @@ export default function SignupPage() {
       }));
     } catch (error) {
       toast.error('파일 업로드에 실패했습니다.');
+      setSelectedFile(null);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -95,6 +109,15 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const validation = signupSchema.safeParse(formData);
+    if (!validation.success) {
+      const errors = validation.error.errors;
+      if (errors.length > 0) {
+        toast.error(errors[0].message);
+        return;
+      }
+    }
+    
     try {
       const accessToken = document.cookie
         .split('; ')
@@ -112,10 +135,10 @@ export default function SignupPage() {
       });
 
       if (response.status === 200 || response.status === 201) {
-        console.log('회원가입 성공:', response.data);
+        console.log(response.data);
         router.push('/');
       } else {
-        console.error('회원가입 실패:', response);
+        console.error(response);
       }
     } catch (error: any) {
       console.error(error);
@@ -156,10 +179,16 @@ export default function SignupPage() {
               onResumeLinkChange={handleResumeLinkChange}
               onFileChange={handleFileChange}
               onFileClear={handleFileClear}
+              isUploading={isUploading}
             />
 
             <div>
-              <Button type="submit" className="w-full">
+              <Button 
+                type="submit" 
+                variant="outline" 
+                className="w-full"
+                disabled={!isFormValid()}
+              >
                 가입하기
               </Button>
             </div>
