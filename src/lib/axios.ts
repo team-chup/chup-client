@@ -6,7 +6,7 @@ export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const instance = axios.create({
   baseURL,
-  timeout: 5000,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
