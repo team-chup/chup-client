@@ -102,22 +102,23 @@ export default function SignupPage() {
         ?.split('=')[1];
 
       if (!accessToken) {
-        alert('로그인이 필요합니다.');
         return;
       }
       
-      const { data } = await instance.post('/user/signup', {
+      const response = await instance.post('/user/signup', formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`
-        },
-        body: formData
+        }
       });
 
-      if (data) {
+      if (response.status === 200 || response.status === 201) {
+        console.log('회원가입 성공:', response.data);
         router.push('/');
+      } else {
+        console.error('회원가입 실패:', response);
       }
     } catch (error: any) {
-      console.error( error);
+      console.error(error);
       alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
