@@ -11,6 +11,11 @@ import useFileUpload from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
 import { signupSchema } from '@/schemas/user';
 
+const ALLOWED_EXTENSIONS = [
+  'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm',
+  'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
+];
+
 export default function SignupPage() {
   const router = useRouter();
   const { uploadFile } = useFileUpload();
@@ -41,8 +46,11 @@ export default function SignupPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast.error('PDF 파일만 업로드 가능합니다.');
+
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      toast.error('pdf, jpeg, jpg, png, xls, xlsx, xlsm, hwp, hwpx, hwt, ppt, pptx, zip 파일만 업로드 가능합니다.');
       return;
     }
 
