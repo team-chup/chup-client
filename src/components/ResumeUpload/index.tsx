@@ -53,6 +53,7 @@ const ResumeUpload = ({
         <div>
           <Input
             type="url"
+            name="resumeLink"
             placeholder="이력서 링크를 입력하세요"
             value={resumeLink}
             onChange={onResumeLinkChange}
@@ -67,6 +68,7 @@ const ResumeUpload = ({
           <div className="relative">
             <Input
               type="text"
+              name="resumeFileName"
               readOnly
               value={selectedFile?.name || ''}
               placeholder="PDF 파일을 선택해주세요"
@@ -84,6 +86,7 @@ const ResumeUpload = ({
             )}
             <input
               id="file-upload"
+              name="resumeFile"
               type="file"
               accept=".pdf"
               onChange={onFileChange}
