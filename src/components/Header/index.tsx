@@ -41,6 +41,16 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await userInfoResponse.json();
+
+        if (!userInfo.email?.endsWith('@gsm.hs.kr')) {
+          toast.error('GSM 계정으로만 로그인이 가능합니다.');
+          return;
+        }
+
         const response = await instance.post<LoginResponse>('/auth/login', {
           oauthToken: tokenResponse.access_token
         });
@@ -48,7 +58,7 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
         const { data } = response;
         
         if (!data.accessToken || !data.refreshToken) {
-          toast.error('토큰이 제대로 발급되지 않았습니다.');
+          console.error('토큰이 제대로 발급되지 않았습니다.');
           return;
         }
 
@@ -60,21 +70,26 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
           .find(row => row.startsWith('accessToken='))
           ?.split('=')[1];
         
+        console.log('저장된 액세스 토큰:', savedAccessToken);
+        
         if (!savedAccessToken) {
-          toast.error('토큰이 쿠키에 저장되지 않았습니다.');
+          console.error('토큰이 쿠키에 저장되지 않았습니다.');
           return;
         }
 
         const nextPage = data.authority === 'TEMP' ? '/signup' : '/';
+        console.log('페이지 이동:', nextPage);
         router.push(nextPage);
 
       } catch (error: any) {
-        console.error( error);
+        console.error('로그인 오류:', error);
         console.error('에러 응답:', error.response?.data);
+        toast.error('로그인 중 오류가 발생했습니다.');
       }
     },
     onError: () => {
       console.error('Google 로그인 실패');
+      toast.error('Google 로그인에 실패했습니다.');
     }
   });
 
