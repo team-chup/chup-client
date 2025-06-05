@@ -22,6 +22,14 @@ const ResumeUpload = ({
   onFileChange,
   onFileClear,
 }: ResumeUploadProps) => {
+  const handleClear = () => {
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    onFileClear();
+  };
+
   return (
     <div>
       <div className="flex space-x-4 mb-4">
@@ -78,7 +86,7 @@ const ResumeUpload = ({
             {selectedFile && (
               <button
                 type="button"
-                onClick={onFileClear}
+                onClick={handleClear}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
               >
                 <X className="h-4 w-4 text-gray-500" />

@@ -77,7 +77,7 @@ export default function SignupPage() {
     setFormData(prev => ({
       ...prev,
       resume: {
-        name: '외부 이력서 링크',
+        name: 'LINK',
         type: 'LINK',
         url: link
       }
