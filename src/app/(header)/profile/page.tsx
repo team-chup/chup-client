@@ -14,7 +14,8 @@ import { toast } from "sonner"
 import useFileUpload from "@/hooks/useFileUpload"
 import ResumeUpload from "@/components/ResumeUpload"
 import { formatFileSize } from "@/utils/formatFileSize"
-
+import { signupSchema } from "@/schemas/user"
+import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
@@ -28,6 +29,18 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<UserProfile | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [resumeLink, setResumeLink] = useState('')
+  const [shakingFields, setShakingFields] = useState<string[]>([])
+
+  // 진동 효과를 위한 CSS 클래스
+  const shakeAnimation = "animate-shake"
+
+  // 진동 효과를 추가하는 함수
+  const addShakeEffect = (fieldName: string) => {
+    setShakingFields(prev => [...prev, fieldName])
+    setTimeout(() => {
+      setShakingFields(prev => prev.filter(field => field !== fieldName))
+    }, 500) // 0.5초 후에 진동 효과 제거
+  }
 
   useEffect(() => {
     if (profile) {
@@ -51,14 +64,32 @@ export default function ProfilePage() {
     return <div>로딩 중...</div>
   }
 
-  const handleInputChange = (field: string, value: any) => {
-    setProfileData((prev) => prev ? ({ ...prev, [field]: value }) : null)
-  }
+  const handleInputChange = (field: string, value: string) => {
+    setProfileData(prev => prev ? ({ ...prev, [field]: value }) : null);
+  };
 
   const handleSave = async () => {
     if (!profileData) return;
 
     try {
+      const validationResult = signupSchema.safeParse(profileData);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors;
+        errors.forEach(error => {
+          const field = error.path[0] as string;
+          addShakeEffect(field);
+        });
+
+        errors.forEach(error => {
+          toast.error(error.message, {
+            duration: 3000,
+            style: { maxWidth: '500px' }
+          });
+        });
+        return;
+      }
+
       await updateUserProfile(profileData);
       setIsEditing(false);
       toast.success('프로필이 성공적으로 업데이트되었습니다.');
@@ -66,7 +97,7 @@ export default function ProfilePage() {
       console.error('프로필 업데이트 실패:', error);
       toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
-  }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,6 +218,9 @@ export default function ProfilePage() {
                     value={profileData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     disabled={!isEditing}
+                    className={cn(
+                      shakingFields.includes('name') && shakeAnimation
+                    )}
                   />
                 </div>
 
@@ -195,7 +229,7 @@ export default function ProfilePage() {
                   <Input 
                     id="studentId" 
                     value={profileData.studentNumber} 
-                    disabled={true} 
+                    disabled={true}
                   />
                 </div>
 
@@ -206,16 +240,22 @@ export default function ProfilePage() {
                     value={profileData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     disabled={!isEditing}
+                    className={cn(
+                      shakingFields.includes('email') && shakeAnimation
+                    )}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="phone" className="block mb-1 font-medium text-gray-700">전화번호</label>
                   <Input
-                    id="phone"
+                    id="phoneNumber"
                     value={profileData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                     disabled={!isEditing}
+                    className={cn(
+                      shakingFields.includes('phoneNumber') && shakeAnimation
+                    )}
                   />
                 </div>
               </div>

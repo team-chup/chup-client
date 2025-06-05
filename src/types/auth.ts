@@ -1,4 +1,4 @@
-import { SignupSchema } from '@/schemas/signup';
+import { SignupSchema } from '@/schemas/user';
 
 export type Authority = 'TEMP' | 'USER' | 'TEACHER';
 

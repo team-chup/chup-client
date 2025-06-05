@@ -9,7 +9,7 @@ import { SignupRequest } from '@/types/auth';
 import { signup } from '@/api/signup';
 import useFileUpload from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
-import { signupSchema } from '@/schemas/signup';
+import { signupSchema } from '@/schemas/user';
 
 export default function SignupPage() {
   const router = useRouter();
