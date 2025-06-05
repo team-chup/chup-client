@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import ResumeUpload from '@/components/ResumeUpload';
 import UserForm from '@/components/UserForm';
 import { SignupRequest } from '@/types/auth';
-import { instance } from '@/lib/axios';
 import useFileUpload from '@/hooks/useFileUpload';
 import { toast } from 'sonner';
 import { signupSchema } from '@/schemas/signup';
+import { signup } from '@/api/signup';
 
 type ResumeType = 'PDF' | 'LINK';
 
@@ -119,30 +119,11 @@ export default function SignupPage() {
     }
     
     try {
-      const accessToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('accessToken='))
-        ?.split('=')[1];
-
-      if (!accessToken) {
-        return;
-      }
-      
-      const response = await instance.post('/user/signup', formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-
-      if (response.status === 200 || response.status === 201) {
-        console.log(response.data);
-        router.push('/');
-      } else {
-        console.error(response);
-      }
+      await signup(formData);
+      router.push('/');
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error(error.message || '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 

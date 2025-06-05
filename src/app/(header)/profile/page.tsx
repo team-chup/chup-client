@@ -2,44 +2,71 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { User, Upload, Save, Edit, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { getUserProfile, updateUserProfile } from "@/api/user"
+import { UserProfile } from "@/types/user"
+import { useQuery } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
-  const [profileData, setProfileData] = useState({
-    name: "전준연",
-    studentId: "2415",
-    email: "s24070@gsm.hs.kr",
-    phone: "010-7210-2359",
-    resumeFile: "전준연_2415_프론트엔드_이력서.pdf",
-    resumeType: "file", // "file" or "link"
-    resumeUrl: "",
-    portfolioUrl: "https://github.com/junjuny0227",
+  const { data: profile, isLoading } = useQuery<UserProfile>({
+    queryKey: ['profile'],
+    queryFn: getUserProfile
   })
 
-  const handleInputChange = (field: string, value: any) => {
-    setProfileData((prev) => ({ ...prev, [field]: value }))
+  const [profileData, setProfileData] = useState<UserProfile | null>(null)
+
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        name: profile.name,
+        studentNumber: profile.studentNumber,
+        email: profile.email,
+        phoneNumber: profile.phoneNumber,
+        authority: profile.authority,
+        resume: profile.resume
+      })
+    }
+  }, [profile])
+
+  if (isLoading || !profileData) {
+    return <div>로딩 중...</div>
   }
 
-  const handleSave = () => {
-    // 프로필 저장 로직
-    setIsEditing(false)
-    console.log("Profile saved:", profileData)
+  const handleInputChange = (field: string, value: any) => {
+    setProfileData((prev) => prev ? ({ ...prev, [field]: value }) : null)
+  }
+
+  const handleSave = async () => {
+    if (!profileData) return;
+
+    try {
+      await updateUserProfile(profileData);
+      setIsEditing(false);
+      toast.success('프로필이 성공적으로 업데이트되었습니다.');
+    } catch (error) {
+      console.error('프로필 업데이트 실패:', error);
+      toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
+    }
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      handleInputChange("resumeFile", file.name)
+    if (file && profileData) {
+      setProfileData({
+        ...profileData,
+        resume: {
+          ...profileData.resume,
+          name: file.name,
+          type: 'PDF'
+        }
+      })
     }
-  }
-
-  const handleLogout = () => {
-    console.log("학생 로그아웃")
   }
 
   return (
@@ -96,8 +123,8 @@ export default function ProfilePage() {
                   <label htmlFor="studentId" className="block mb-1 font-medium text-gray-700">학번</label>
                   <Input 
                     id="studentId" 
-                    value={profileData.studentId} 
-                    disabled={!isEditing} 
+                    value={profileData.studentNumber} 
+                    disabled={true} 
                   />
                 </div>
 
@@ -115,8 +142,8 @@ export default function ProfilePage() {
                   <label htmlFor="phone" className="block mb-1 font-medium text-gray-700">전화번호</label>
                   <Input
                     id="phone"
-                    value={profileData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    value={profileData.phoneNumber}
+                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -139,23 +166,23 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-gray-400" />
                     <div>
-                      {profileData.resumeType === "file" ? (
+                      {profileData.resume.type === "PDF" ? (
                         <>
-                          <p className="font-medium">{profileData.resumeFile}</p>
+                          <p className="font-medium">{profileData.resume.name}</p>
                           <p className="text-sm text-gray-500">업로드됨: 2024-01-01</p>
                         </>
                       ) : (
                         <>
                           <p className="font-medium">이력서 링크</p>
                           <p className="text-sm text-blue-600 hover:underline cursor-pointer">
-                            {profileData.resumeUrl || "링크가 설정되지 않았습니다"}
+                            {profileData.resume.url || "링크가 설정되지 않았습니다"}
                           </p>
                         </>
                       )}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {profileData.resumeType === "file" ? (
+                    {profileData.resume.type === "PDF" ? (
                       <Button variant="outline" size="sm">
                         다운로드
                       </Button>
@@ -178,9 +205,12 @@ export default function ProfilePage() {
                           type="radio"
                           id="file-type"
                           name="resumeType"
-                          value="file"
-                          checked={profileData.resumeType === "file"}
-                          onChange={(e) => handleInputChange("resumeType", e.target.value)}
+                          value="PDF"
+                          checked={profileData.resume.type === "PDF"}
+                          onChange={(e) => handleInputChange("resume", { 
+                            ...profileData.resume, 
+                            type: e.target.value as "PDF" | "LINK" 
+                          })}
                           className="w-4 h-4 text-blue-600"
                         />
                         <label htmlFor="file-type" className="text-sm font-normal">
@@ -192,9 +222,12 @@ export default function ProfilePage() {
                           type="radio"
                           id="link-type"
                           name="resumeType"
-                          value="link"
-                          checked={profileData.resumeType === "link"}
-                          onChange={(e) => handleInputChange("resumeType", e.target.value)}
+                          value="LINK"
+                          checked={profileData.resume.type === "LINK"}
+                          onChange={(e) => handleInputChange("resume", { 
+                            ...profileData.resume, 
+                            type: e.target.value as "PDF" | "LINK" 
+                          })}
                           className="w-4 h-4 text-blue-600"
                         />
                         <label htmlFor="link-type" className="text-sm font-normal">
@@ -204,7 +237,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {profileData.resumeType === "file" ? (
+                  {profileData.resume.type === "PDF" ? (
                     <div>
                       <label className="block mb-1 font-medium text-gray-700">새 이력서 업로드</label>
                       <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
@@ -236,8 +269,11 @@ export default function ProfilePage() {
                       <label htmlFor="resumeUrl" className="block mb-1 font-medium text-gray-700">이력서 링크</label>
                       <Input
                         id="resumeUrl"
-                        value={profileData.resumeUrl}
-                        onChange={(e) => handleInputChange("resumeUrl", e.target.value)}
+                        value={profileData.resume.url}
+                        onChange={(e) => handleInputChange("resume", { 
+                          ...profileData.resume, 
+                          url: e.target.value 
+                        })}
                         placeholder="https://drive.google.com/... 또는 https://github.com/..."
                         className="mt-2"
                       />
