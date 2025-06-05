@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from 'sonner';
 import { QueryProvider } from '@/lib/query';
+import { AuthProvider } from '@/lib/auth-provider';
 import "./globals.css";
 import { Header } from "@/components/Header";
 
@@ -23,11 +24,13 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.variable} antialiased`}>
-        <QueryProvider>
-          <Header />
-          {children}
-          <Toaster position="top-center" expand={true} richColors />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <Header />
+            {children}
+            <Toaster position="top-center" expand={true} richColors />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );
