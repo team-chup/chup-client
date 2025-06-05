@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "Next.js template with modern stack",
+  title: "CHUP.today",
+  description: "GSM 채용 요청 통합 관리 서비스, CHUP",
 };
 
 export default function RootLayout({

@@ -3,12 +3,9 @@
 import { useState, useEffect } from "react"
 import { Building2, Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useGoogleLogin, googleLogout } from '@react-oauth/google';
+import { googleLogout } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
-import { instance } from '@/lib/axios';
-import { LoginResponse } from '@/types/auth';
-import { setCookie, removeCookie } from '@/lib/cookie';
-import { toast } from "sonner";
+import { removeCookie } from '@/lib/cookie';
 
 interface HeaderProps {
   isAdmin?: boolean
@@ -38,74 +35,11 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
     return () => clearInterval(intervalId);
   }, []);
 
-  const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        const userInfo = await userInfoResponse.json();
-
-        if (!userInfo.email?.endsWith('@gsm.hs.kr')) {
-          toast.error('GSM 계정으로만 로그인이 가능합니다.');
-          return;
-        }
-
-        const response = await instance.post<LoginResponse>('/auth/login', {
-          oauthToken: tokenResponse.access_token
-        });
-        
-        const { data } = response;
-        
-        if (!data.accessToken || !data.refreshToken) {
-          console.error('토큰이 제대로 발급되지 않았습니다.');
-          return;
-        }
-
-        setCookie('accessToken', data.accessToken);
-        setCookie('refreshToken', data.refreshToken);
-        
-        const savedAccessToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('accessToken='))
-          ?.split('=')[1];
-        
-        console.log('저장된 액세스 토큰:', savedAccessToken);
-        
-        if (!savedAccessToken) {
-          console.error('토큰이 쿠키에 저장되지 않았습니다.');
-          return;
-        }
-
-        const nextPage = data.authority === 'TEMP' ? '/signup' : '/';
-        console.log('페이지 이동:', nextPage);
-        router.push(nextPage);
-
-      } catch (error: any) {
-        console.error('로그인 오류:', error);
-        console.error('에러 응답:', error.response?.data);
-        toast.error('로그인 중 오류가 발생했습니다.');
-      }
-    },
-    onError: () => {
-      console.error('Google 로그인 실패');
-      toast.error('Google 로그인에 실패했습니다.');
-    }
-  });
-
   const handleLogout = () => {
     googleLogout();
     removeCookie('accessToken');
     removeCookie('refreshToken');
     router.push('/login');
-  }
-
-  const handleAuth = () => {
-    if (isAuthenticated) {
-      handleLogout();
-    } else {
-      login();
-    }
   }
 
   const studentNavItems = [
@@ -132,13 +66,7 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Building2 className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">CHUP.today</span>
-              {/* {isAdmin && (
-                <Badge variant="outline" className="text-blue-700 border-blue-200">
-                  관리자
-                </Badge>
-              )} */}
             </div>
           </div>
 
@@ -163,9 +91,11 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
               </Button>
             )}
 
-            <Button variant="outline" size="sm" onClick={handleAuth}>
-              {isAuthenticated ? '로그아웃' : '로그인'}
-            </Button>
+            {isAuthenticated && (
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                로그아웃
+              </Button>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -199,9 +129,11 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
                     공고 등록
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="w-full" onClick={handleAuth}>
-                  {isAuthenticated ? '로그아웃' : '로그인'}
-                </Button>
+                {isAuthenticated && (
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+                    로그아웃
+                  </Button>
+                )}
               </div>
             </nav>
           </div>
