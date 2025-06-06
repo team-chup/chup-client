@@ -6,6 +6,7 @@ const publicPaths = ['/login', '/signup'];
 export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get('accessToken');
 
   if (pathname.startsWith('/api')) {
     requestHeaders.set('x-custom-header', 'api-request');
@@ -16,12 +17,19 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  if (publicPaths.some(path => pathname.startsWith(path))) {
+  if (pathname.startsWith('/signup')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/main', request.url));
+    }
+  }
+
+  if (pathname.startsWith('/login')) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get('accessToken');
-  if (!token && !pathname.startsWith('/login')) {
+  if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
