@@ -8,7 +8,9 @@ export default function HeaderLayout({
   return (
     <div className="flex h-full flex-col">
       <Header />
-      {children}
+      <div className="flex-1 overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }
