@@ -8,20 +8,17 @@ export const resumeSchema = z.object({
 
 export const signupSchema = z.object({
   name: z.string()
-    .min(1, '이름을 입력해주세요')
-    .max(4, '이름은 4글자를 초과할 수 없습니다'),
+    .min(2, '이름을 2글자 이상 입력해주세요')
+    .max(4, '이름은 4글자 이하로 입력해주세요'),
   
   email: z.string()
-    .min(1, '이메일을 입력해주세요')
     .email('올바른 이메일 형식이 아닙니다'),
   
   studentNumber: z.string()
-    .min(1, '학번을 입력해주세요')
     .regex(/^\d{4}$/, '학번은 4자리 숫자여야 합니다'),
   
   phoneNumber: z.string()
-    .min(1, '전화번호를 입력해주세요')
-    .regex(/^\d{11}$/, '전화번호는 11자리 숫자여야 합니다'),
+    .regex(/^010\d{8}$/, '전화번호는 010으로 시작하는 11자리 숫자여야 합니다'),
   
   resume: resumeSchema,
 });
