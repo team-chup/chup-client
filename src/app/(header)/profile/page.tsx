@@ -18,6 +18,11 @@ import { signupSchema } from "@/schemas/user"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
+const ALLOWED_EXTENSIONS = [
+  'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm',
+  'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
+];
+
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const { uploadFile } = useFileUpload()
@@ -157,7 +162,7 @@ export default function ProfilePage() {
 
       await updateUserProfile(profileData);
       setIsEditing(false);
-      toast.success('프로필이 성공적으로 업데이트되었습니다.');
+      toast.success('프로필이 업데이트되었습니다.');
     } catch (error) {
       console.error('프로필 업데이트 실패:', error);
       toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
@@ -168,8 +173,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast.error('PDF 파일만 업로드 가능합니다.');
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      toast.error('지원하지 않는 확장자입니다.');
       return;
     }
 
@@ -192,7 +198,7 @@ export default function ProfilePage() {
           size: file.size
         }
       }) : null);
-      toast.success('이력서가 성공적으로 업로드되었습니다.');
+      toast.success('이력서가 업로드되었습니다.');
     } catch (error) {
       toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);

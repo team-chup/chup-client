@@ -103,7 +103,7 @@ export default function ResumeUpload({
           <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
             <div className="space-y-1 text-center">
               <Upload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="flex text-sm text-gray-600">
+              <div className="flex text-sm text-gray-600 items-center justify-center">
                 <label
                   htmlFor="resume-upload"
                   className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
@@ -123,7 +123,7 @@ export default function ResumeUpload({
                 </label>
                 <p className="pl-1">또는 드래그 앤 드롭</p>
               </div>
-              <p className="text-xs text-gray-500">PDF 파일만 업로드 가능 (최대 10MB)</p>
+              <p className="text-xs text-gray-500">pdf, jpeg, jpg, png, xls, xlsx, xlsm, hwp, hwpx, hwt, ppt, pptx, zip 파일만 업로드 가능 (최대 10MB)</p>
             </div>
           </div>
         </div>

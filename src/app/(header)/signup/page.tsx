@@ -50,7 +50,7 @@ export default function SignupPage() {
 
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
-      toast.error('pdf, jpeg, jpg, png, xls, xlsx, xlsm, hwp, hwpx, hwt, ppt, pptx, zip 파일만 업로드 가능합니다.');
+      toast.error('지원하지 않는 확장자입니다.');
       return;
     }
 
@@ -72,7 +72,7 @@ export default function SignupPage() {
           url: url
         }
       }));
-      toast.success('이력서가 성공적으로 업로드되었습니다.');
+      toast.success('이력서가 업로드되었습니다.');
     } catch (error) {
       toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);
