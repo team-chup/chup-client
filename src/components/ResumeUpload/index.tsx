@@ -116,7 +116,7 @@ export default function ResumeUpload({
                     id="resume-upload"
                     name="resume-upload"
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.jpeg,.jpg,.png,.xls,.xlsx,.xlsm,.hwp,.hwpx,.hwt,.ppt,.pptx,.zip"
                     className="sr-only"
                     onChange={onFileChange}
                   />
