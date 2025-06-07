@@ -1,35 +1,24 @@
-import { instance } from "@/lib/axios"; 
-
-interface FileUploadResponse {
-    url: string;
-}
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { uploadResume } from "@/api/file";
+import { toast } from "sonner";
 
 const useFileUpload = () => {
-    const uploadFile = async (file: File) => {
-      try {
-        const accessToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('accessToken='))
-          ?.split('=')[1];
-  
-        const formData = new FormData();
-        formData.append('file', file);
-  
-        const { data } = await instance.post<FileUploadResponse>('/file/resume', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: accessToken || '',
-          },
-        });
-  
-        return data.url;
-      } catch (error) {
-        console.error('File upload failed:', error);
-        throw error;
-      }
-    };
-  
-    return { uploadFile };
-  };
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: uploadFile, isPending: isUploading } = useMutation({
+    mutationFn: async (file: File) => {
+      return await uploadResume(file);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error('파일 업로드에 실패했습니다.');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    }
+  });
+
+  return { uploadFile, isUploading };
+};
 
 export default useFileUpload;

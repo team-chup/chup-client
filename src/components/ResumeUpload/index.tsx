@@ -31,11 +31,10 @@ export default function ResumeUpload({
   onResumeChange
 }: ResumeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [resumeType, setResumeType] = useState<'PDF' | 'LINK'>(currentResume?.type || 'LINK');
   const [resumeLink, setResumeLink] = useState(currentResume?.url || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadFile } = useFileUpload();
+  const { uploadFile, isUploading } = useFileUpload();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,7 +52,6 @@ export default function ResumeUpload({
     }
 
     setSelectedFile(file);
-    setIsUploading(true);
     
     try {
       const url = await uploadFile(file);
@@ -66,10 +64,7 @@ export default function ResumeUpload({
       onResumeChange(newResume);
       toast.success('이력서가 업로드되었습니다.');
     } catch (error) {
-      toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);
-    } finally {
-      setIsUploading(false);
     }
   };
 
