@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadResume } from "@/api/file";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const useFileUpload = () => {
   const queryClient = useQueryClient();
@@ -9,9 +10,13 @@ const useFileUpload = () => {
     mutationFn: async (file: File) => {
       return await uploadResume(file);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error(error);
-      toast.error('파일 업로드에 실패했습니다.');
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message);
+      } else {
+        toast.error('파일 업로드에 실패했습니다.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
