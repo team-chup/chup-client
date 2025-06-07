@@ -7,35 +7,22 @@ import { Save, Edit, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { getUserProfile, updateUserProfile } from "@/api/user"
 import { UserProfile } from "@/types/user"
-import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
-import useFileUpload from "@/hooks/useFileUpload"
 import ResumeUpload from "@/components/ResumeUpload"
 import { formatFileSize } from "@/utils/formatFileSize"
 import { signupSchema } from "@/schemas/user"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-
-const ALLOWED_EXTENSIONS = [
-  'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm',
-  'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
-];
+import { useProfileQuery } from "@/hooks/useProfileQuery"
+import { useProfileMutation } from "@/hooks/useProfileMutation"
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
-  const { uploadFile } = useFileUpload()
-  const [isUploading, setIsUploading] = useState(false)
-  const { data: profile, isLoading } = useQuery<UserProfile>({
-    queryKey: ['profile'],
-    queryFn: getUserProfile
-  })
-
   const [profileData, setProfileData] = useState<UserProfile | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [resumeLink, setResumeLink] = useState('')
   const [shakingFields, setShakingFields] = useState<string[]>([])
+  const { data: profile, isLoading } = useProfileQuery()
+  const { updateProfile, isUpdating } = useProfileMutation()
 
   const shakeAnimation = "animate-shake"
 
@@ -60,7 +47,6 @@ export default function ProfilePage() {
           url: profile.resume.url || ''
         }
       });
-      setResumeLink(profile.resume.url || '');
     }
   }, [profile])
 
@@ -160,89 +146,13 @@ export default function ProfilePage() {
         return;
       }
 
-      await updateUserProfile(profileData);
+      await updateProfile(profileData);
       setIsEditing(false);
       toast.success('프로필이 업데이트되었습니다.');
     } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
+      console.error( error);
       toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
-      toast.error('지원하지 않는 확장자입니다.');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
-      return;
-    }
-
-    setSelectedFile(file);
-    setIsUploading(true);
-    
-    try {
-      const url = await uploadFile(file);
-      setProfileData(prev => prev ? ({
-        ...prev,
-        resume: {
-          name: file.name,
-          type: 'PDF',
-          url: url,
-          size: file.size
-        }
-      }) : null);
-      toast.success('이력서가 업로드되었습니다.');
-    } catch (error) {
-      toast.error('파일 업로드에 실패했습니다.');
-      setSelectedFile(null);
-    } finally {
-      setIsUploading(false);
-    }
-  }
-
-  const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const link = e.target.value;
-    setResumeLink(link);
-    setProfileData(prev => prev ? ({
-      ...prev,
-      resume: {
-        name: 'LINK',
-        type: 'LINK',
-        url: link
-      }
-    }) : null);
-  };
-
-  const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
-    if (!profileData) return;
-    setProfileData({
-      ...profileData,
-      resume: {
-        name: '',
-        type: type,
-        url: type === 'LINK' ? resumeLink : ''
-      }
-    });
-  };
-
-  const handleFileClear = () => {
-    setSelectedFile(null);
-    if (!profileData) return;
-    setProfileData({
-      ...profileData,
-      resume: {
-        name: '',
-        type: 'PDF',
-        url: ''
-      }
-    });
   };
 
   return (
@@ -257,11 +167,12 @@ export default function ProfilePage() {
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
             className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
             variant={isEditing ? "default" : "outline"}
+            disabled={isUpdating}
           >
             {isEditing ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                저장
+                {isUpdating ? '저장 중...' : '저장'}
               </>
             ) : (
               <>
