@@ -46,8 +46,6 @@ export default function SignupPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-
-
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
       toast.error('지원하지 않는 확장자입니다.');
@@ -164,15 +162,13 @@ export default function SignupPage() {
               이력서
             </label>
             <ResumeUpload
-              resumeType={resumeType}
-              resumeLink={resumeLink}
-              selectedFile={selectedFile}
-              onResumeTypeChange={handleResumeTypeChange}
-              onResumeLinkChange={handleResumeLinkChange}
-              onFileChange={handleFileChange}
-              onFileClear={handleFileClear}
-              isUploading={isUploading}
               currentResume={formData.resume}
+              onResumeChange={(resume) => {
+                setFormData(prev => ({
+                  ...prev,
+                  resume
+                }));
+              }}
             />
 
             <div>

@@ -8,34 +8,106 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatFileSize } from "@/utils/formatFileSize"
 import { useState } from "react"
+import useFileUpload from "@/hooks/useFileUpload"
+import { toast } from "sonner"
+
+const ALLOWED_EXTENSIONS = [
+  'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm',
+  'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
+];
 
 interface ResumeUploadProps {
-  resumeType: 'PDF' | 'LINK';
-  resumeLink: string;
-  selectedFile: File | null;
-  onResumeTypeChange: (type: 'PDF' | 'LINK') => void;
-  onResumeLinkChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFileClear: () => void;
-  isUploading: boolean;
   currentResume?: {
     name: string;
     type: 'PDF' | 'LINK';
     url: string;
     size?: number;
   };
+  onResumeChange: (resume: { name: string; type: 'PDF' | 'LINK'; url: string; size?: number }) => void;
 }
 
 export default function ResumeUpload({
-  resumeType,
-  resumeLink,
-  onResumeTypeChange,
-  onResumeLinkChange,
-  onFileChange,
   currentResume,
-  isUploading
+  onResumeChange
 }: ResumeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [resumeType, setResumeType] = useState<'PDF' | 'LINK'>(currentResume?.type || 'LINK');
+  const [resumeLink, setResumeLink] = useState(currentResume?.url || '');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { uploadFile } = useFileUpload();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      toast.error('지원하지 않는 확장자입니다.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setIsUploading(true);
+    
+    try {
+      const url = await uploadFile(file);
+      const newResume = {
+        name: file.name,
+        type: 'PDF' as const,
+        url: url,
+        size: file.size
+      };
+      onResumeChange(newResume);
+      toast.success('이력서가 업로드되었습니다.');
+    } catch (error) {
+      toast.error('파일 업로드에 실패했습니다.');
+      setSelectedFile(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
+    setResumeType(type);
+    if (type === 'LINK') {
+      onResumeChange({
+        name: 'LINK',
+        type: 'LINK',
+        url: resumeLink
+      });
+    } else {
+      onResumeChange({
+        name: '',
+        type: 'PDF',
+        url: ''
+      });
+    }
+  };
+
+  const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const link = e.target.value;
+    setResumeLink(link);
+    onResumeChange({
+      name: 'LINK',
+      type: 'LINK',
+      url: link
+    });
+  };
+
+  const handleFileClear = () => {
+    setSelectedFile(null);
+    onResumeChange({
+      name: '',
+      type: 'PDF',
+      url: ''
+    });
+  };
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -66,7 +138,7 @@ export default function ResumeUpload({
           files: files
         }
       } as unknown as React.ChangeEvent<HTMLInputElement>;
-      onFileChange(event);
+      handleFileChange(event);
     }
   };
 
@@ -79,7 +151,7 @@ export default function ResumeUpload({
       <div>
         <RadioGroup
           value={resumeType}
-          onValueChange={(value: 'PDF' | 'LINK') => onResumeTypeChange(value)}
+          onValueChange={(value: 'PDF' | 'LINK') => handleResumeTypeChange(value)}
           className="flex gap-6 mt-2"
         >
           <div className="flex items-center gap-3">
@@ -163,7 +235,7 @@ export default function ResumeUpload({
                   type="file"
                   accept=".pdf,.jpeg,.jpg,.png,.xls,.xlsx,.xlsm,.hwp,.hwpx,.hwt,.ppt,.pptx,.zip"
                   className="sr-only"
-                  onChange={onFileChange}
+                  onChange={handleFileChange}
                 />
                 <p className="pl-1">또는 드래그 앤 드롭</p>
               </div>
@@ -176,7 +248,7 @@ export default function ResumeUpload({
           <Input
             id="resumeUrl"
             value={resumeLink}
-            onChange={onResumeLinkChange}
+            onChange={handleResumeLinkChange}
             placeholder="https://drive.google.com/... 또는 https://github.com/..."
             className="mt-2"
           />

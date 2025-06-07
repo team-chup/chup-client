@@ -246,7 +246,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -339,15 +339,13 @@ export default function ProfilePage() {
             <CardContent>
               {isEditing ? (
                 <ResumeUpload
-                  resumeType={profileData.resume.type}
-                  resumeLink={resumeLink}
-                  selectedFile={selectedFile}
-                  onResumeTypeChange={handleResumeTypeChange}
-                  onResumeLinkChange={handleResumeLinkChange}
-                  onFileChange={handleFileChange}
-                  onFileClear={handleFileClear}
-                  isUploading={isUploading}
                   currentResume={profileData.resume}
+                  onResumeChange={(resume) => {
+                    setProfileData(prev => prev ? ({
+                      ...prev,
+                      resume
+                    }) : null);
+                  }}
                 />
               ) : (
                 <div className="flex items-center gap-3">
