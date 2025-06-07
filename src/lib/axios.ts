@@ -4,12 +4,32 @@ import { setCookie, removeCookie } from './cookie';
 
 export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
-const MAX_RETRY_COUNT = 5;
-const RETRY_DELAY = 500; 
-
 const TIMEOUT = 10_000;
+const MAX_RETRY_COUNT = 5;
+const RETRY_DELAY = 500;
+
+interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const onRefreshed = (token: string) => {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+};
+
+const logout = () => {
+  isRefreshing = false;
+  refreshSubscribers = [];
+  removeCookie('accessToken');
+  removeCookie('refreshToken');
+  window.location.href = authConfig.signInPage;
+};
 
 export const instance = axios.create({
   baseURL,
@@ -41,16 +61,36 @@ instance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { 
-      _retry?: boolean;
-      _retryCount?: number;
-    };
+    const originalRequest = error.config;
+    
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      originalRequest._retryCount = 0;
+    if (originalRequest.url === '/auth/refresh') {
+      return Promise.reject(error);
+    }
 
-      const attemptRefreshToken = async (retryCount: number): Promise<AxiosResponse> => {
+    if (error.response?.status === 401) {
+      if (isRefreshing) {
+        try {
+          const token = await new Promise<string>((resolve, reject) => {
+            refreshSubscribers.push(resolve);
+            setTimeout(() => {
+              reject(new Error('Refresh token timeout'));
+            }, TIMEOUT);
+          });
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return instance(originalRequest);
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      }
+
+      isRefreshing = true;
+      let retryCount = 0;
+
+      while (retryCount < MAX_RETRY_COUNT) {
         try {
           const refreshToken = document.cookie
             .split('; ')
@@ -61,35 +101,31 @@ instance.interceptors.response.use(
             throw new Error('No refresh token');
           }
 
-          const response = await instance.post<{ token: string }>('/auth/refresh', null, {
+          const response = await instance.post<TokenResponse>('/auth/refresh', null, {
             headers: {
-              RefreshToken: refreshToken
+              Authorization: `Bearer ${refreshToken}`
             }
           });
 
-          const { token } = response.data;
-          setCookie('accessToken', token);
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+          setCookie('accessToken', accessToken);
+          setCookie('refreshToken', newRefreshToken);
 
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          isRefreshing = false;
+          onRefreshed(accessToken);
+
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return instance(originalRequest);
         } catch (error) {
+          retryCount++;
           if (retryCount < MAX_RETRY_COUNT) {
-            console.log(`attempt ${retryCount + 1}`);
             await sleep(RETRY_DELAY);
-            return attemptRefreshToken(retryCount + 1);
           }
-          throw error;
         }
-      };
-
-      try {
-        return await attemptRefreshToken(0);
-      } catch (error) {
-        removeCookie('accessToken');
-        removeCookie('refreshToken');
-        window.location.href = authConfig.signInPage;
-        return Promise.reject(error);
       }
+
+      logout();
+      return Promise.reject(new Error('Token refresh failed'));
     }
 
     return Promise.reject(error);
