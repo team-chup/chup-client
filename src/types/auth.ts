@@ -7,5 +7,5 @@ export type SignupRequest = SignupSchema;
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  authority: 'TEMP' | 'USER' | 'ADMIN';
+  authority: Authority;
 } 
