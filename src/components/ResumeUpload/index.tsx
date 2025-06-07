@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatFileSize } from "@/utils/formatFileSize"
+import { useState } from "react"
 
 interface ResumeUploadProps {
   resumeType: 'PDF' | 'LINK';
@@ -34,6 +35,45 @@ export default function ResumeUpload({
   currentResume,
   isUploading
 }: ResumeUploadProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const event = {
+        target: {
+          files: files
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      onFileChange(event);
+    }
+  };
+
+  const handleClick = () => {
+    document.getElementById('resume-upload')?.click();
+  };
+
   return (
     <div className="space-y-2">
       <div>
@@ -100,27 +140,31 @@ export default function ResumeUpload({
 
       {resumeType === "PDF" ? (
         <div>
-          <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors">
+          <div
+            className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
+              isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
+            } border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={handleClick}
+          >
             <div className="space-y-1 text-center">
               <Upload className="mx-auto h-8 w-8 text-gray-400" />
               <div className="flex text-sm text-gray-600 items-center justify-center">
-                <label
-                  htmlFor="resume-upload"
-                  className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
-                >
-                  <span className="flex items-center gap-1 hover:underline">
-                    <FileUp className="h-4 w-4" />
-                    파일 선택
-                  </span>
-                  <input
-                    id="resume-upload"
-                    name="resume-upload"
-                    type="file"
-                    accept=".pdf,.jpeg,.jpg,.png,.xls,.xlsx,.xlsm,.hwp,.hwpx,.hwt,.ppt,.pptx,.zip"
-                    className="sr-only"
-                    onChange={onFileChange}
-                  />
-                </label>
+                <span className="flex items-center gap-1">
+                  <FileUp className="h-4 w-4" />
+                  파일 선택
+                </span>
+                <input
+                  id="resume-upload"
+                  name="resume-upload"
+                  type="file"
+                  accept=".pdf,.jpeg,.jpg,.png,.xls,.xlsx,.xlsm,.hwp,.hwpx,.hwt,.ppt,.pptx,.zip"
+                  className="sr-only"
+                  onChange={onFileChange}
+                />
                 <p className="pl-1">또는 드래그 앤 드롭</p>
               </div>
               <p className="text-xs text-gray-500">pdf, jpeg, jpg, png, xls, xlsx, xlsm, hwp, hwpx, hwt, ppt, pptx, zip 파일만 업로드 가능 (최대 10MB)</p>
