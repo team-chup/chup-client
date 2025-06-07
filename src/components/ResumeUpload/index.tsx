@@ -1,6 +1,6 @@
 "use client"
 
-import { FileUp, Upload, FileText } from "lucide-react"
+import { FileUp, Upload, FileText, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -168,7 +168,11 @@ export default function ResumeUpload({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-gray-400" />
+                {isUploading ? (
+                  <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                ) : (
+                  <FileText className="h-5 w-5 text-gray-400" />
+                )}
                 <div className="min-h-[44px] flex flex-col justify-center">
                   {currentResume.type === "PDF" ? (
                     <>

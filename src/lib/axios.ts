@@ -7,11 +7,13 @@ export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 const MAX_RETRY_COUNT = 5;
 const RETRY_DELAY = 500; 
 
+const TIMEOUT = 10_000;
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const instance = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },

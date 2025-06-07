@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Save, Edit, FileText } from "lucide-react"
+import { Save, Edit, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -171,8 +171,12 @@ export default function ProfilePage() {
           >
             {isEditing ? (
               <>
-                <Save className="h-4 w-4 mr-2" />
-                {isUpdating ? '저장 중...' : '저장'}
+                {isUpdating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                저장
               </>
             ) : (
               <>
