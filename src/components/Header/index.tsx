@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { googleLogout } from '@react-oauth/google';
@@ -29,25 +29,7 @@ const adminNavItems = [
 
 export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter();
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('accessToken='))
-        ?.split('=')[1];
-      
-      setIsAuthenticated(!!token);
-    };
-
-    checkAuth();
-    
-    const intervalId = setInterval(checkAuth, 1000);
-    
-    return () => clearInterval(intervalId);
-  }, []);
 
   const handleLogout = () => {
     googleLogout();
@@ -102,11 +84,9 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
               </Button>
             )}
 
-            {isAuthenticated && (
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                로그아웃
-              </Button>
-            )}
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              로그아웃
+            </Button>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -140,11 +120,9 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
                     공고 등록
                   </Button>
                 )}
-                {isAuthenticated && (
-                  <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-                    로그아웃
-                  </Button>
-                )}
+                <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+                  로그아웃
+                </Button>
               </div>
             </nav>
           </div>

@@ -4,9 +4,16 @@ import { setCookie, removeCookie } from './cookie';
 
 export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
+const MAX_RETRY_COUNT = 5;
+const RETRY_DELAY = 500; 
+
+const TIMEOUT = 10_000;
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const instance = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,32 +41,49 @@ instance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & { 
+      _retry?: boolean;
+      _retryCount?: number;
+    };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      originalRequest._retryCount = 0;
+
+      const attemptRefreshToken = async (retryCount: number): Promise<AxiosResponse> => {
+        try {
+          const refreshToken = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('refreshToken='))
+            ?.split('=')[1];
+
+          if (!refreshToken) {
+            throw new Error('No refresh token');
+          }
+
+          const response = await instance.post<{ token: string }>('/auth/refresh', null, {
+            headers: {
+              RefreshToken: refreshToken
+            }
+          });
+
+          const { token } = response.data;
+          setCookie('accessToken', token);
+
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return instance(originalRequest);
+        } catch (error) {
+          if (retryCount < MAX_RETRY_COUNT) {
+            console.log(`attempt ${retryCount + 1}`);
+            await sleep(RETRY_DELAY);
+            return attemptRefreshToken(retryCount + 1);
+          }
+          throw error;
+        }
+      };
 
       try {
-        const refreshToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('refreshToken='))
-          ?.split('=')[1];
-
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-
-        const response = await instance.post<{ token: string }>('/auth/refresh', null, {
-          headers: {
-            RefreshToken: refreshToken
-          }
-        });
-
-        const { token } = response.data;
-        setCookie('accessToken', token);
-
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return instance(originalRequest);
+        return await attemptRefreshToken(0);
       } catch (error) {
         removeCookie('accessToken');
         removeCookie('refreshToken');

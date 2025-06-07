@@ -6,9 +6,9 @@ export default function HeaderLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <Header />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {children}
       </div>
     </div>

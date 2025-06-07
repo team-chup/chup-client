@@ -1,4 +1,4 @@
-export type Authority = 'TEMP' | 'USER' | 'TEACHER';
+import { Authority } from './auth';
 
 export type Resume = {
   name: string;
