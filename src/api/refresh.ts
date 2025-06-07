@@ -4,8 +4,6 @@ import { authConfig } from '../lib/config/auth';
 import { setCookie, removeCookie } from '../lib/cookie';
 
 const TIMEOUT = 10_000;
-const MAX_RETRY_COUNT = 5;
-const RETRY_DELAY = 500;
 
 interface TokenResponse {
   accessToken: string;
@@ -14,8 +12,6 @@ interface TokenResponse {
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const onRefreshed = (token: string) => {
   refreshSubscribers.forEach(callback => callback(token));
@@ -58,44 +54,37 @@ export const handleTokenRefresh = async (error: AxiosError) => {
     }
 
     isRefreshing = true;
-    let retryCount = 0;
 
-    while (retryCount < MAX_RETRY_COUNT) {
-      try {
-        const refreshToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('refreshToken='))
-          ?.split('=')[1];
+    try {
+      const refreshToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('refreshToken='))
+        ?.split('=')[1];
 
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-
-        const response = await instance.post<TokenResponse>('/auth/refresh', null, {
-          headers: {
-            Authorization: `Bearer ${refreshToken}`
-          }
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        setCookie('accessToken', accessToken);
-        setCookie('refreshToken', newRefreshToken);
-
-        isRefreshing = false;
-        onRefreshed(accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return instance(originalRequest);
-      } catch (error) {
-        retryCount++;
-        if (retryCount < MAX_RETRY_COUNT) {
-          await sleep(RETRY_DELAY);
-        }
+      if (!refreshToken) {
+        throw new Error('No refresh token');
       }
-    }
 
-    logout();
-    return Promise.reject(new Error('Token refresh failed'));
+      const response = await instance.post<TokenResponse>('/auth/refresh', null, {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`
+        }
+      });
+
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      setCookie('accessToken', accessToken);
+      setCookie('refreshToken', newRefreshToken);
+
+      isRefreshing = false;
+      onRefreshed(accessToken);
+
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return instance(originalRequest);
+    } catch (error) {
+      isRefreshing = false;
+      logout();
+      return Promise.reject(new Error('Token refresh failed'));
+    }
   }
 
   return Promise.reject(error);
