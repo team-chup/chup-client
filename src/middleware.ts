@@ -18,9 +18,7 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/signup')) {
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/main', request.url));
-    }
+    } 
   }
 
   if (pathname.startsWith('/login')) {
