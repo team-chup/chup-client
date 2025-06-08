@@ -1,11 +1,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { authConfig } from './config/auth';
+import { handleTokenRefresh } from '../api/refresh';
 
-export const baseURL = process.env.NEXT_PUBLIC_API_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
+
+const TIMEOUT = 10_000;
 
 export const instance = axios.create({
   baseURL,
-  timeout: 5000,
+  timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,7 +15,11 @@ export const instance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('accessToken='))
+      ?.split('=')[1];
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,34 +35,6 @@ instance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-
-        const response = await instance.post<{ token: string }>('/auth/refresh', {
-          refreshToken,
-        });
-
-        const { token } = response.data;
-        localStorage.setItem('token', token);
-
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return instance(originalRequest);
-      } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        window.location.href = authConfig.signInPage;
-        return Promise.reject(error);
-      }
-    }
-
-    return Promise.reject(error);
+    return handleTokenRefresh(error);
   },
 ); 

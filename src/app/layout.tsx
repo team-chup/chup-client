@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from 'sonner';
-import { QueryProvider } from '@/lib/query';
+import { Providers } from '@/lib/provider';
 import "./globals.css";
 
 const inter = Inter({
@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "Next.js template with modern stack",
+  title: "CHUP.today",
+  description: "GSM 채용 요청 통합 관리 서비스, CHUP",
 };
 
 export default function RootLayout({
@@ -22,10 +22,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.variable} antialiased`}>
-        <QueryProvider>
+        <Providers>
           {children}
-          <Toaster position="top-center" expand={true} richColors />
-        </QueryProvider>
+          <Toaster position="bottom-right" expand={true} richColors />
+        </Providers>
       </body>
     </html>
   );
