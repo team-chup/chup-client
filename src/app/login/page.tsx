@@ -43,6 +43,7 @@ export default function LoginPage() {
         
         const nextPage = data.authority === 'TEMP' ? '/signup' : '/';
         router.push(nextPage);
+        console.log(data.authority);
 
       } catch (error: any) {
         console.error('로그인 오류:', error);
