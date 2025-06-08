@@ -1,30 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { authConfig } from '@/lib/config/auth';
 
 export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('accessToken');
 
-  if (request.nextUrl.pathname.startsWith('/api')) {
+  if (pathname.startsWith('/api')) {
     requestHeaders.set('x-custom-header', 'api-request');
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
-  const isAuth = request.cookies.has('auth-token');
-  const currentPath = request.nextUrl.pathname;
-
-  const isProtectedPage = authConfig.protectedPages.some(
-    (path) => currentPath.startsWith(path)
-  );
-  const isAuthPage = authConfig.publicPages.some(
-    (path) => currentPath.startsWith(path)
-  );
-
-  if (!isAuth && isProtectedPage) {
-    return NextResponse.redirect(new URL(authConfig.signInPage, request.url));
+  if (pathname.startsWith('/signup')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    } 
   }
 
-  if (isAuth && isAuthPage) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (pathname.startsWith('/login')) {
+    return NextResponse.next();
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next({
