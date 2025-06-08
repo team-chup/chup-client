@@ -146,19 +146,6 @@ export default function ProfilePage() {
         return;
       }
 
-      const hasChanges = Object.entries(profileData).some(([key, value]) => {
-        if (key === 'resume') {
-          return false;
-        }
-        return profile?.[key as keyof UserProfile] !== value;
-      });
-
-      if (!hasChanges) {
-        setIsEditing(false);
-        toast.info('변경된 내용이 없습니다.');
-        return;
-      }
-
       await updateProfile(profileData);
       setIsEditing(false);
       toast.success('프로필이 업데이트되었습니다.');
