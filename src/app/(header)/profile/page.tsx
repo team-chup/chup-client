@@ -148,7 +148,7 @@ export default function ProfilePage() {
 
       const hasChanges = Object.entries(profileData).some(([key, value]) => {
         if (key === 'resume') {
-          return JSON.stringify(profile?.resume) !== JSON.stringify(value);
+          return false;
         }
         return profile?.[key as keyof UserProfile] !== value;
       });
