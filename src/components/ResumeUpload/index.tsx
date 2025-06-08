@@ -70,12 +70,16 @@ export default function ResumeUpload({
   const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
     setResumeType(type);
     if (type === 'LINK') {
+      setSelectedFile(null);
+      setResumeLink('');
       onResumeChange({
         name: 'LINK',
         type: 'LINK',
-        url: resumeLink
+        url: ''
       });
     } else {
+      setResumeLink('');
+      setSelectedFile(null);
       onResumeChange({
         name: '',
         type: 'PDF',
@@ -184,7 +188,7 @@ export default function ResumeUpload({
                         <>
                           <p className="font-medium">{currentResume.name ? currentResume.name : '파일 업로드'}</p>
                           <p className="text-sm text-gray-500">
-                            {currentResume.size ? formatFileSize(currentResume.size) : '파일이 업로드되지 않았습니다'}
+                            {currentResume.size ? formatFileSize(currentResume.size) : ''}
                           </p>
                         </>
                       )}
