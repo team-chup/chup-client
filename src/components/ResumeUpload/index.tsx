@@ -12,8 +12,7 @@ import useFileUpload from "@/hooks/useFileUpload"
 import { toast } from "sonner"
 
 const ALLOWED_EXTENSIONS = [
-  'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm',
-  'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
+  'pdf'
 ];
 
 interface ResumeUploadProps {
@@ -232,13 +231,13 @@ export default function ResumeUpload({
                   id="resume-upload"
                   name="resume-upload"
                   type="file"
-                  accept=".pdf,.jpeg,.jpg,.png,.xls,.xlsx,.xlsm,.hwp,.hwpx,.hwt,.ppt,.pptx,.zip"
+                  accept=".pdf"
                   className="sr-only"
                   onChange={handleFileChange}
                 />
                 <p className="pl-1">또는 드래그 앤 드롭</p>
               </div>
-              <p className="text-xs text-gray-500">pdf, jpeg, jpg, png, xls, xlsx, xlsm, hwp, hwpx, hwt, ppt, pptx, zip 파일만 업로드 가능 (최대 10MB)</p>
+              <p className="text-xs text-gray-500">{ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)</p>
             </div>
           </div>
         </div>

@@ -146,11 +146,24 @@ export default function ProfilePage() {
         return;
       }
 
+      const hasChanges = Object.entries(profileData).some(([key, value]) => {
+        if (key === 'resume') {
+          return JSON.stringify(profile?.resume) !== JSON.stringify(value);
+        }
+        return profile?.[key as keyof UserProfile] !== value;
+      });
+
+      if (!hasChanges) {
+        setIsEditing(false);
+        toast.info('변경된 내용이 없습니다.');
+        return;
+      }
+
       await updateProfile(profileData);
       setIsEditing(false);
       toast.success('프로필이 업데이트되었습니다.');
     } catch (error) {
-      console.error( error);
+      console.error(error);
       toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
   };
