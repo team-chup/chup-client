@@ -73,7 +73,7 @@ export default function JobCard({
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
+          <div className={`flex ${authority === "TEACHER" ? "items-center gap-2" : "flex-col items-end gap-2"}`}>
             {authority === "TEACHER" ? (
               <>
                 <Link href={`/applications/${id}`}>
