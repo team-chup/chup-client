@@ -66,7 +66,6 @@ export default function MainPage() {
                           <Skeleton className="h-5 w-24 bg-gray-200" />
                           <Skeleton className="h-5 w-20 bg-gray-200" />
                         </div>
-                        <Skeleton className="h-4 w-1/2 bg-gray-200 mb-3" />
                         <div className="flex items-center gap-6">
                           <Skeleton className="h-4 w-20 bg-gray-200" />
                           <Skeleton className="h-4 w-16 bg-gray-200" />
@@ -83,8 +82,17 @@ export default function MainPage() {
         ) : (
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile.name}님! 👋</h1>
-              <p className="text-gray-600">새로운 채용 기회를 찾아보세요. 총 {jobListings.count}개의 공고가 있습니다.</p>
+              {profile.authority === "TEACHER" ? (
+                <>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">관리자 대시보드 👨‍🏫</h1>
+                  <p className="text-gray-600">총 {jobListings.count}개의 채용공고를 관리하고 있습니다.</p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile.name}님! 👋</h1>
+                  <p className="text-gray-600">새로운 채용 기회를 찾아보세요. 총 {jobListings.count}개의 공고가 있습니다.</p>
+                </>
+              )}
             </div>
 
             <JobSearchFilter
@@ -115,6 +123,7 @@ export default function MainPage() {
                   positions={job.positions}
                   applicationCount={job.applicationCount}
                   endAt={job.endAt}
+                  authority={profile.authority}
                 />
               ))}
             </div>

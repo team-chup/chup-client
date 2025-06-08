@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, MapPin, Users } from "lucide-react"
+import { Calendar, MapPin, Users, Eye, Settings } from "lucide-react"
 import { getTypeColor, getEmploymentTypeText, getLocationText, getDaysLeft } from "@/utils/jobUtils"
 import Link from "next/link"
 
@@ -18,6 +18,7 @@ interface JobCardProps {
   positions: Position[]
   applicationCount: number
   endAt: string
+  authority?: string
 }
 
 export default function JobCard({
@@ -27,7 +28,8 @@ export default function JobCard({
   employmentType,
   positions,
   applicationCount,
-  endAt
+  endAt,
+  authority
 }: JobCardProps) {
   const daysLeft = getDaysLeft(endAt)
 
@@ -72,15 +74,27 @@ export default function JobCard({
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <Link href={`/company/${id}`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-[#fafafa]">
-                상세보기
-              </Button>
-            </Link>
-            {daysLeft <= 3 && daysLeft > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                마감임박
-              </Badge>
+            {authority === "TEACHER" ? (
+              <>
+                <Link href={`/applications/${id}`}>
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    지원 현황
+                  </Button>
+                </Link>
+                <Link href={`/edit-job/${id}`}>
+                  <Button variant="outline" size="sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    수정
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Link href={`/company/${id}`}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-[#fafafa]">
+                  상세보기
+                </Button>
+              </Link>
             )}
           </div>
         </div>
