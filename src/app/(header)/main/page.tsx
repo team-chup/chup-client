@@ -9,6 +9,7 @@ import { getJobListings } from "@/api/posting"
 import { Loader2 } from "lucide-react"
 import { JobListingsResponse } from "@/types/posting"
 import { useProfileQuery } from "@/hooks/useProfileQuery"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function MainPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -27,55 +28,107 @@ export default function MainPage() {
     refetchOnWindowFocus: false,
   })
 
-  if (isProfileLoading || isJobListingsLoading || !jobListings || !profile) {
-    return (
-      <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    )
-  }
+  // if (isProfileLoading || isJobListingsLoading || !jobListings || !profile) {
+  //   return (
+  //     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50 flex items-center justify-center">
+  //       <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile?.name}님! 👋</h1>
-          <p className="text-gray-600">새로운 채용 기회를 찾아보세요. 총 {jobListings.count}개의 공고가 있습니다.</p>
-        </div>
+        {isProfileLoading || isJobListingsLoading || !jobListings || !profile ? (
+          <>
+            <div className="mb-8">
+              <Skeleton className="h-8 w-80 mb-2 bg-gray-200" />
+              <Skeleton className="h-5 w-96 bg-gray-200" />
+            </div>
+  
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <Skeleton className="h-10 w-full bg-gray-200" />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Skeleton className="h-10 w-full sm:w-[180px] bg-gray-200" />
+                  <Skeleton className="h-10 w-full sm:w-[180px] bg-gray-200" />
+                  <Skeleton className="h-10 w-full sm:w-[180px] bg-gray-200" />
+                  <Skeleton className="h-10 w-10 bg-gray-200" />
+                </div>
+              </div>
+            </div>
 
-        <JobSearchFilter
-          searchQuery={searchQuery}
-          selectedPosition={selectedPosition}
-          selectedLocation={selectedLocation}
-          selectedType={selectedType}
-          onSearchQueryChange={setSearchQuery}
-          onPositionChange={setSelectedPosition}
-          onLocationChange={setSelectedLocation}
-          onTypeChange={setSelectedType}
-          onReset={() => {
-            setSearchQuery("")
-            setSelectedPosition("")
-            setSelectedLocation("")
-            setSelectedType("")
-          }}
-        />
+            <div className="grid gap-6">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4 flex-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Skeleton className="h-6 w-48 bg-gray-200" />
+                          <Skeleton className="h-5 w-16 bg-gray-200" />
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Skeleton className="h-5 w-24 bg-gray-200" />
+                          <Skeleton className="h-5 w-20 bg-gray-200" />
+                        </div>
+                        <Skeleton className="h-4 w-1/2 bg-gray-200 mb-3" />
+                        <div className="flex items-center gap-6">
+                          <Skeleton className="h-4 w-20 bg-gray-200" />
+                          <Skeleton className="h-4 w-16 bg-gray-200" />
+                          <Skeleton className="h-4 w-14 bg-gray-200" />
+                        </div>
+                      </div>
+                    </div>
+                    <Skeleton className="h-9 w-20 bg-gray-200" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile?.name}님! 👋</h1>
+              <p className="text-gray-600">새로운 채용 기회를 찾아보세요. 총 {jobListings.count}개의 공고가 있습니다.</p>
+            </div>
 
-        <div className="grid gap-6">
-          {jobListings.postings.map((job) => (
-            <JobCard
-              key={job.id}
-              id={job.id}
-              companyName={job.companyName}
-              companyLocation={job.companyLocation}
-              employmentType={job.employmentType}
-              positions={job.positions}
-              applicationCount={job.applicationCount}
-              endAt={job.endAt}
+            <JobSearchFilter
+              searchQuery={searchQuery}
+              selectedPosition={selectedPosition}
+              selectedLocation={selectedLocation}
+              selectedType={selectedType}
+              onSearchQueryChange={setSearchQuery}
+              onPositionChange={setSelectedPosition}
+              onLocationChange={setSelectedLocation}
+              onTypeChange={setSelectedType}
+              onReset={() => {
+                setSearchQuery("")
+                setSelectedPosition("")
+                setSelectedLocation("")
+                setSelectedType("")
+              }}
             />
-          ))}
-        </div>
 
-        {jobListings.postings.length === 0 && <EmptyState />}
+            <div className="grid gap-6">
+              {jobListings.postings.map((job) => (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  companyName={job.companyName}
+                  companyLocation={job.companyLocation}
+                  employmentType={job.employmentType}
+                  positions={job.positions}
+                  applicationCount={job.applicationCount}
+                  endAt={job.endAt}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        {jobListings?.postings.length === 0 && <EmptyState />}
       </main>
     </div>
   )
