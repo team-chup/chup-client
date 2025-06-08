@@ -28,14 +28,6 @@ export default function MainPage() {
     refetchOnWindowFocus: false,
   })
 
-  // if (isProfileLoading || isJobListingsLoading || !jobListings || !profile) {
-  //   return (
-  //     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50 flex items-center justify-center">
-  //       <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-  //     </div>
-  //   )
-  // }
-
   return (
     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -91,7 +83,7 @@ export default function MainPage() {
         ) : (
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile?.name}님! 👋</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {profile.name}님! 👋</h1>
               <p className="text-gray-600">새로운 채용 기회를 찾아보세요. 총 {jobListings.count}개의 공고가 있습니다.</p>
             </div>
 
