@@ -28,6 +28,27 @@ export default function MainPage() {
     refetchOnWindowFocus: false,
   })
 
+  const filteredJobListings = jobListings?.postings.filter((job) => {
+    const matchesSearch = searchQuery
+      ? job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.positions.some((pos) => pos.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : true
+
+    const matchesPosition = selectedPosition
+      ? job.positions.some((pos) => pos.name === selectedPosition)
+      : true
+
+    const matchesLocation = selectedLocation
+      ? job.companyLocation === selectedLocation
+      : true
+
+    const matchesType = selectedType
+      ? job.employmentType === selectedType
+      : true
+
+    return matchesSearch && matchesPosition && matchesLocation && matchesType
+  })
+
   return (
     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -113,7 +134,7 @@ export default function MainPage() {
             />
 
             <div className="grid gap-6">
-              {jobListings.postings.map((job) => (
+              {filteredJobListings?.map((job) => (
                 <JobCard
                   key={job.id}
                   id={job.id}
@@ -129,7 +150,7 @@ export default function MainPage() {
             </div>
           </>
         )}
-        {jobListings?.postings.length === 0 && <EmptyState />}
+        {filteredJobListings?.length === 0 && <EmptyState />}
       </main>
     </div>
   )
