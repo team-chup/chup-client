@@ -11,16 +11,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
-import { createJobPosting } from "@/api/posting"
+import { getJobPostingDetail, updateJobPosting } from "@/api/posting"
 import { getPositions, createPosition } from "@/api/posting"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { 
   AttachmentFile, 
   CompanyLocation, 
-  CreateJobPostingRequest, 
   EmploymentType, 
-  Position 
+  Position,
+  JobPostingDetail
 } from "@/types/posting"
 import usePostingFileUpload from "@/hooks/usePostingFileUpload"
 import { formatFileSize } from "@/utils/formatFileSize"
@@ -53,6 +53,14 @@ const LOCATION_MAPPING: Record<string, CompanyLocation> = {
   "제주": "JEJU",
 };
 
+const REVERSE_LOCATION_MAPPING: Record<CompanyLocation, string> = Object.entries(LOCATION_MAPPING).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [value]: key
+  }), 
+  {} as Record<CompanyLocation, string>
+);
+
 const AVAILABLE_LOCATIONS = Object.keys(LOCATION_MAPPING);
 
 const EMPLOYMENT_TYPE_MAPPING: Record<string, EmploymentType> = {
@@ -60,6 +68,13 @@ const EMPLOYMENT_TYPE_MAPPING: Record<string, EmploymentType> = {
   "contract": "CONTRACT",
   "intern": "INTERN",
   "military": "MILITARY_EXCEPTION"
+};
+
+const REVERSE_EMPLOYMENT_MAPPING: Record<EmploymentType, string> = {
+  "FULL_TIME": "fulltime",
+  "CONTRACT": "contract",
+  "INTERN": "intern",
+  "MILITARY_EXCEPTION": "military"
 };
 
 interface JobFormData {
@@ -76,6 +91,7 @@ interface JobFormData {
 interface AttachmentWithFile {
   file: File;
   url?: string;
+  name?: string;
 }
 
 interface FileValidationResult {
@@ -83,7 +99,14 @@ interface FileValidationResult {
   errorMessage?: string;
 }
 
-export default function CreateJobPage() {
+interface Props {
+  params: {
+    id: string;
+  };
+}
+
+export default function EditJobPage({ params }: Props) {
+  const postingId = params.id;
   const router = useRouter();
   const { uploadFile, isUploading } = usePostingFileUpload();
   
@@ -91,6 +114,7 @@ export default function CreateJobPage() {
   const [selectedPositions, setSelectedPositions] = useState<number[]>([]);
   const [customPositionName, setCustomPositionName] = useState("");
   const [isPositionsLoading, setIsPositionsLoading] = useState(true);
+  const [isJobPostingLoading, setIsJobPostingLoading] = useState(true);
   const [isAddingPosition, setIsAddingPosition] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,6 +129,48 @@ export default function CreateJobPage() {
     endDate: null,
     attachments: [],
   });
+
+  useEffect(() => {
+    const loadJobPostingDetail = async () => {
+      try {
+        const jobPostingDetail = await getJobPostingDetail(postingId);
+        
+        const locationKey = REVERSE_LOCATION_MAPPING[jobPostingDetail.companyLocation] || "";
+        const employmentTypeKey = REVERSE_EMPLOYMENT_MAPPING[jobPostingDetail.employmentType] || "";
+        
+        const startDate = jobPostingDetail.startAt ? new Date(jobPostingDetail.startAt) : null;
+        const endDate = jobPostingDetail.endAt ? new Date(jobPostingDetail.endAt) : null;
+        
+        const positionIds = jobPostingDetail.positions?.map(position => position.id) || [];
+        setSelectedPositions(positionIds);
+        
+        const attachments: AttachmentWithFile[] = (jobPostingDetail.files || []).map(file => ({
+          file: new File([], file.name), 
+          url: file.url,
+          name: file.name
+        }));
+        
+        setJobData({
+          company: jobPostingDetail.companyName,
+          description: jobPostingDetail.companyDescription || "",
+          location: locationKey,
+          customLocation: locationKey === "" ? jobPostingDetail.companyLocation : "",
+          employmentType: employmentTypeKey,
+          startDate,
+          endDate,
+          attachments
+        });
+      } catch (error) {
+        console.error("채용공고 상세 정보 로드 실패:", error);
+        toast.error("채용공고 정보를 불러오는데 실패했습니다.");
+        router.push("/admin/main");
+      } finally {
+        setIsJobPostingLoading(false);
+      }
+    };
+    
+    loadJobPostingDetail();
+  }, [postingId, router]);
 
   useEffect(() => {
     const loadPositions = async () => {
@@ -267,7 +333,7 @@ export default function CreateJobPage() {
         if (attachment.url) {
           return {
             url: attachment.url,
-            name: attachment.file.name
+            name: attachment.name || attachment.file.name
           };
         }
         
@@ -307,7 +373,7 @@ export default function CreateJobPage() {
       const startAt = jobData.startDate ? jobData.startDate.toISOString() : "";
       const endAt = jobData.endDate ? jobData.endDate.toISOString() : "";
       
-      const requestData: CreateJobPostingRequest = {
+      const requestData = {
         companyName: jobData.company,
         companyDescription: jobData.description,
         companyLocation: mappedLocation,
@@ -318,18 +384,29 @@ export default function CreateJobPage() {
         endAt
       };
       
-      await createJobPosting(requestData);
+      await updateJobPosting(postingId, requestData);
       
-      toast.success("채용공고가 성공적으로 등록되었습니다");
+      toast.success("채용공고가 성공적으로 수정되었습니다");
       router.push("/admin/main");
       
     } catch (error) {
-      console.error("채용공고 등록 실패:", error);
-      toast.error("채용공고 등록에 실패했습니다");
+      console.error("채용공고 수정 실패:", error);
+      toast.error("채용공고 수정에 실패했습니다");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isJobPostingLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">채용공고 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderBasicInfoSection = () => (
     <Card>
@@ -575,9 +652,9 @@ export default function CreateJobPage() {
                         <FileText className="h-5 w-5 text-gray-400" />
                       )}
                       <div>
-                        <p className="font-medium">{attachment.file.name}</p>
+                        <p className="font-medium">{attachment.name || attachment.file.name}</p>
                         <p className="text-sm text-gray-500">
-                          {formatFileSize(attachment.file.size)}
+                          {attachment.url ? "이미 업로드된 파일" : formatFileSize(attachment.file.size)}
                         </p>
                       </div>
                     </div>
@@ -605,7 +682,7 @@ export default function CreateJobPage() {
         }
         className="text-white bg-blue-600 hover:bg-blue-700"
       >
-        {isSubmitting ? "처리 중..." : "공고 등록"}
+        {isSubmitting ? "처리 중..." : "공고 수정"}
       </Button>
     </div>
   );
@@ -614,8 +691,8 @@ export default function CreateJobPage() {
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">채용공고 등록</h1>
-          <p className="text-gray-600">새로운 채용공고를 등록하여 GSM 학생들에게 기회를 제공하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">채용공고 수정</h1>
+          <p className="text-gray-600">채용공고 정보를 수정하여 GSM 학생들에게 정확한 정보를 제공하세요</p>
         </div>
 
         <div className="grid gap-6">
