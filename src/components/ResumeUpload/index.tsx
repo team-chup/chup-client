@@ -7,23 +7,26 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatFileSize } from "@/utils/formatFileSize"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import useFileUpload from "@/hooks/useFileUpload"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
-const ALLOWED_EXTENSIONS = [
-  'pdf'
-];
+const ALLOWED_EXTENSIONS = ['pdf'] as const;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+type ResumeType = 'PDF' | 'LINK';
+
+interface ResumeData {
+  name: string;
+  type: ResumeType;
+  url: string;
+  size?: number;
+}
 
 interface ResumeUploadProps {
-  currentResume?: {
-    name: string;
-    type: 'PDF' | 'LINK';
-    url: string;
-    size?: number;
-  };
-  onResumeChange: (resume: { name: string; type: 'PDF' | 'LINK'; url: string; size?: number }) => void;
+  currentResume?: ResumeData;
+  onResumeChange: (resume: ResumeData) => void;
   editable?: boolean;
 }
 
@@ -33,15 +36,16 @@ export default function ResumeUpload({
   editable = false
 }: ResumeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [resumeType, setResumeType] = useState<'PDF' | 'LINK'>(currentResume?.type || 'LINK');
+  const [resumeType, setResumeType] = useState<ResumeType>(currentResume?.type || 'LINK');
   const [resumeLink, setResumeLink] = useState(currentResume?.url || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadFile, isUploading } = useFileUpload();
   
-  const [tempResume, setTempResume] = useState(currentResume);
+  const [tempResume, setTempResume] = useState<ResumeData | undefined>(currentResume);
   const [isChanged, setIsChanged] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 현재 이력서 정보가 업데이트되면 임시 이력서 상태도 업데이트
   useEffect(() => {
     if (currentResume) {
       setTempResume(currentResume);
@@ -52,7 +56,8 @@ export default function ResumeUpload({
     }
   }, [currentResume]);
 
-  const checkIfChanged = (temp: typeof tempResume) => {
+  // 변경 여부 확인 - 메모이제이션으로 불필요한 연산 방지
+  const checkIfChanged = useCallback((temp: ResumeData | undefined): boolean => {
     if (!currentResume || !temp) return false;
     
     return !(
@@ -61,19 +66,25 @@ export default function ResumeUpload({
       temp.type === currentResume.type &&
       temp.size === currentResume.size
     );
-  };
+  }, [currentResume]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 파일 확장자 확인
+  const isValidFileExtension = useCallback((filename: string): boolean => {
+    const fileExtension = filename.split('.').pop()?.toLowerCase();
+    return !!fileExtension && ALLOWED_EXTENSIONS.includes(fileExtension as any);
+  }, []);
+
+  // 파일 변경 핸들러
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    if (!isValidFileExtension(file.name)) {
       toast.error('지원하지 않는 확장자입니다.');
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('파일 크기는 10MB를 초과할 수 없습니다.');
       return;
     }
@@ -82,9 +93,9 @@ export default function ResumeUpload({
     
     try {
       const url = await uploadFile(file);
-      const newResume = {
+      const newResume: ResumeData = {
         name: file.name,
-        type: 'PDF' as const,
+        type: 'PDF',
         url: url,
         size: file.size
       };
@@ -97,17 +108,19 @@ export default function ResumeUpload({
         toast.success('이력서가 업로드되었습니다.');
       }
     } catch (error) {
+      toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);
     }
-  };
+  }, [uploadFile, editable, onResumeChange, checkIfChanged, isValidFileExtension]);
 
-  const handleResumeTypeChange = (type: 'PDF' | 'LINK') => {
+  // 이력서 타입 변경 핸들러
+  const handleResumeTypeChange = useCallback((type: ResumeType) => {
     if (resumeType === type) return;
     
     setResumeType(type);
     
     if (tempResume) {
-      const newTempResume = {
+      const newTempResume: ResumeData = {
         ...tempResume,
         type: type
       };
@@ -125,16 +138,17 @@ export default function ResumeUpload({
       
       setIsChanged(checkIfChanged(newTempResume));
     }
-  };
+  }, [resumeType, tempResume, checkIfChanged]);
 
-  const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 이력서 링크 변경 핸들러
+  const handleResumeLinkChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const link = e.target.value;
     setResumeLink(link);
     
     if (link.trim()) {
-      const newResume = {
+      const newResume: ResumeData = {
         name: 'LINK',
-        type: 'LINK' as const,
+        type: 'LINK',
         url: link,
         size: currentResume?.size
       };
@@ -146,9 +160,10 @@ export default function ResumeUpload({
         onResumeChange(newResume);
       }
     }
-  };
+  }, [currentResume?.size, editable, onResumeChange, checkIfChanged]);
 
-  const handleSave = async () => {
+  // 저장 핸들러
+  const handleSave = useCallback(async () => {
     if (!tempResume) return;
     setIsSaving(true);
     try {
@@ -160,9 +175,10 @@ export default function ResumeUpload({
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [tempResume, onResumeChange]);
 
-  const handleCancel = () => {
+  // 취소 핸들러
+  const handleCancel = useCallback(() => {
     if (currentResume) {
       setResumeType(currentResume.type);
       setTempResume(currentResume);
@@ -176,35 +192,37 @@ export default function ResumeUpload({
       
       setIsChanged(false);
     }
-  };
+  }, [currentResume]);
 
-  const handleFileClear = () => {
+  // 파일 초기화 핸들러
+  const handleFileClear = useCallback(() => {
     setSelectedFile(null);
     onResumeChange({
       name: '',
       type: 'PDF',
       url: ''
     });
-  };
+  }, [onResumeChange]);
 
-  const handleDragEnter = (e: React.DragEvent) => {
+  // 드래그 이벤트 핸들러
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -218,18 +236,41 @@ export default function ResumeUpload({
       } as unknown as React.ChangeEvent<HTMLInputElement>;
       handleFileChange(event);
     }
-  };
+  }, [handleFileChange]);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     document.getElementById('resume-upload')?.click();
-  };
+  }, []);
+
+  // URL 표시 텍스트 계산 - 메모이제이션으로 불필요한 연산 방지
+  const displayUrl = useMemo(() => {
+    if (!tempResume?.url) return "URL이 설정되지 않았습니다";
+    return tempResume.url.length > 40
+      ? `${tempResume.url.slice(0, 37)}...`
+      : tempResume.url;
+  }, [tempResume?.url]);
+
+  // 파일 이름 표시 텍스트 계산 - 메모이제이션으로 불필요한 연산 방지
+  const displayFileName = useMemo(() => {
+    if (!tempResume?.name) return "";
+    return tempResume.name.length > 40
+      ? `${tempResume.name.slice(0, 37)}...`
+      : tempResume.name;
+  }, [tempResume?.name]);
+
+  // 드래그 영역 클래스 계산 - 메모이제이션으로 불필요한 연산 방지
+  const dragAreaClasses = useMemo(() => `
+    mt-2 flex justify-center px-6 pt-5 pb-6 border-2
+    ${isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'}
+    border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer
+  `, [isDragging]);
 
   return (
     <div className="space-y-2">
       <div>
         <RadioGroup
           value={resumeType}
-          onValueChange={(value: 'PDF' | 'LINK') => handleResumeTypeChange(value)}
+          onValueChange={(value: ResumeType) => handleResumeTypeChange(value)}
           className="flex gap-6 mt-2"
         >
           <div className="flex items-center gap-3">
@@ -271,9 +312,7 @@ export default function ResumeUpload({
                               target="_blank" 
                               rel="noopener noreferrer"
                             >
-                              {tempResume.name.length > 40
-                                ? `${tempResume.name.slice(0, 37)}...`
-                                : tempResume.name}
+                              {displayFileName}
                             </a>
                           </p>
                         )}
@@ -292,9 +331,7 @@ export default function ResumeUpload({
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
-                          {tempResume.url.length > 40
-                            ? `${tempResume.url.slice(0, 37)}...`
-                            : tempResume.url}
+                          {displayUrl}
                         </a>
                       ) : (
                         "URL이 설정되지 않았습니다"
@@ -331,9 +368,7 @@ export default function ResumeUpload({
             {resumeType === "PDF" ? (
               <div>
                 <div
-                  className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
-                    isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-                  } border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer`}
+                  className={dragAreaClasses}
                   onDragEnter={handleDragEnter}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -357,7 +392,9 @@ export default function ResumeUpload({
                       />
                       <p className="pl-1">또는 드래그 앤 드롭</p>
                     </div>
-                    <p className="text-xs text-gray-500">{ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)</p>
+                    <p className="text-xs text-gray-500">
+                      {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
+                    </p>
                   </div>
                 </div>
               </div>
