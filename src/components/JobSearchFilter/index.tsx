@@ -47,7 +47,7 @@ export default function JobSearchFilter({
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="포지션" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {POSITIONS.map(({ value, label }) => (
                 <SelectItem key={value} value={value}>
                   {label}
@@ -60,7 +60,7 @@ export default function JobSearchFilter({
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="지역" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {LOCATIONS.map(({ value, label }) => (
                 <SelectItem key={value} value={value}>
                   {label}
@@ -73,7 +73,7 @@ export default function JobSearchFilter({
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="고용형태" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {EMPLOYMENT_TYPES.map(({ value, label }) => (
                 <SelectItem key={value} value={value}>
                   {label}
