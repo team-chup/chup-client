@@ -22,7 +22,7 @@ const studentNavItems = [
 ]
 
 const adminNavItems = [
-  { name: "대시보드", href: "/admin", key: "dashboard" },
+  { name: "채용공고", href: "/admin", key: "jobs" },
   { name: "학생 관리", href: "/admin/students", key: "students" },
 ]
 
