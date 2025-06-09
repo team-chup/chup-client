@@ -60,3 +60,14 @@ export interface JobPostingDetail {
   files: AttachmentFile[]
   applied: boolean
 }
+
+export interface CreateJobPostingRequest {
+  companyName: string
+  companyDescription: string
+  companyLocation: CompanyLocation
+  employmentType: EmploymentType
+  positions: number[]
+  files: AttachmentFile[]
+  startAt: string
+  endAt: string
+}
