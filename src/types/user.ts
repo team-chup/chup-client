@@ -13,5 +13,4 @@ export type UserProfile = {
   studentNumber: string;
   phoneNumber: string;
   authority: Authority;
-  resume: Resume;
 }; 
