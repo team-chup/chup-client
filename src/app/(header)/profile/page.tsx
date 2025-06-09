@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Save, Edit, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +18,7 @@ import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { useProfileMutation } from "@/hooks/useProfileMutation"
 import { updateUserResume } from "@/api/user"
 import { useQueryClient } from '@tanstack/react-query';
+import { Label } from "@/components/ui/label"
 
 type UserProfileWithResume = {
   name: string;
@@ -25,45 +26,147 @@ type UserProfileWithResume = {
   studentNumber: string;
   phoneNumber: string;
   authority: Authority;
-  resume: Resume;
+  resume?: Resume;
 };
+
+const REQUIRED_FIELDS = ['name', 'studentNumber', 'email', 'phoneNumber'] as const;
+
+type RequiredField = typeof REQUIRED_FIELDS[number];
+
+interface ProfileFormData {
+  name: string;
+  studentNumber: string;
+  email: string;
+  phoneNumber: string;
+  resume?: {
+    name: string;
+    type: 'PDF' | 'LINK';
+    url: string;
+    size?: number;
+  };
+}
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
-  const [profileData, setProfileData] = useState<{
-    name: string;
-    email: string;
-    studentNumber: string;
-    phoneNumber: string;
-  }>({ name: '', email: '', studentNumber: '', phoneNumber: '' })
-  const [resumeData, setResumeData] = useState<Resume | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [shakingFields, setShakingFields] = useState<string[]>([])
   const { data: profile, isLoading } = useProfileQuery()
   const { updateProfile, isUpdating } = useProfileMutation()
   const shakeAnimation = "animate-shake"
   const queryClient = useQueryClient();
 
-  const addShakeEffect = (fieldName: string) => {
-    setShakingFields(prev => [...prev, fieldName])
-    setTimeout(() => {
-      setShakingFields(prev => prev.filter(field => field !== fieldName))
-    }, 300)
-  }
+  const [formData, setFormData] = useState<ProfileFormData>({
+    name: '',
+    studentNumber: '',
+    email: '',
+    phoneNumber: '',
+    resume: undefined
+  });
 
   useEffect(() => {
     if (profile) {
-      const p = profile as UserProfileWithResume;
-      setProfileData({
-        name: p.name,
-        studentNumber: p.studentNumber,
-        email: p.email,
-        phoneNumber: p.phoneNumber,
+      setFormData({
+        name: profile.name || '',
+        studentNumber: profile.studentNumber || '',
+        email: profile.email || '',
+        phoneNumber: profile.phoneNumber || '',
+        resume: (profile as UserProfileWithResume).resume
       });
-      setResumeData(p.resume)
     }
-  }, [profile])
+  }, [profile]);
 
-  if (isLoading || !resumeData) {
+  const handleInputChange = useCallback((field: keyof ProfileFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    if (shakingFields.includes(field as RequiredField)) {
+      setShakingFields(prev => prev.filter(f => f !== field));
+    }
+  }, [shakingFields]);
+
+  const handleResumeChange = useCallback(async (resume: ProfileFormData['resume']) => {
+    if (!resume) return;
+    
+    try {
+      await updateUserResume(resume);
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
+      setFormData(prev => ({
+        ...prev,
+        resume
+      }));
+    } catch (error) {
+      console.error(error);
+      toast.error('이력서 저장에 실패했습니다.');
+    }
+  }, [queryClient]);
+
+  const validateFormWithSchema = useCallback(() => {
+    const result = profileSchema.safeParse({
+      name: formData.name,
+      studentNumber: formData.studentNumber,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber
+    });
+    
+    if (!result.success) {
+      const formattedErrors = result.error.format();
+      const invalidFields: RequiredField[] = [];
+      const errorMessages: string[] = [];
+      
+      REQUIRED_FIELDS.forEach(field => {
+        if (formattedErrors[field]?._errors.length) {
+          invalidFields.push(field);
+          errorMessages.push(formattedErrors[field]?._errors[0]);
+        }
+      });
+      
+      return { isValid: false, invalidFields, errorMessages };
+    }
+    
+    return { isValid: true, invalidFields: [], errorMessages: [] };
+  }, [formData]);
+
+  const handleSave = useCallback(async () => {
+    const { isValid, invalidFields, errorMessages } = validateFormWithSchema();
+    
+    if (!isValid) {
+      setShakingFields(invalidFields);
+      errorMessages.forEach(message => {
+        toast.error(message, {
+          duration: 3000,
+          style: { maxWidth: '500px' }
+        });
+      });
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      if (profile) {
+        await updateProfile({
+          ...profile,
+          name: formData.name,
+          studentNumber: formData.studentNumber,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber
+        });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      toast.success('프로필이 저장되었습니다.');
+      setIsEditing(false);
+    } catch (error) {
+      console.error( error);
+      toast.error('프로필 저장에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [formData, validateFormWithSchema, profile, queryClient]);
+
+  if (isLoading || !formData.resume) {
     return (
       <div className="bg-gray-50">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -86,20 +189,20 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">이름</label>
-                    <Skeleton className="h-10 w-full bg-gray-200" />
+                    <Label htmlFor="name" className="block mb-1 font-medium text-gray-700">이름</Label>
+                    <Skeleton className="h-10 w-full bg-gray-200 rounded-md" />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">학번</label>
-                    <Skeleton className="h-10 w-full bg-gray-200" />
+                    <Label htmlFor="studentNumber" className="block mb-1 font-medium text-gray-700">학번</Label>
+                    <Skeleton className="h-10 w-full bg-gray-200 rounded-md" />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">이메일</label>
-                    <Skeleton className="h-10 w-full bg-gray-200" />
+                    <Label htmlFor="email" className="block mb-1 font-medium text-gray-700">이메일</Label>
+                    <Skeleton className="h-10 w-full bg-gray-200 rounded-md" />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">전화번호</label>
-                    <Skeleton className="h-10 w-full bg-gray-200" />
+                    <Label htmlFor="phoneNumber" className="block mb-1 font-medium text-gray-700">전화번호</Label>
+                    <Skeleton className="h-10 w-full bg-gray-200 rounded-md" />
                   </div>
                 </div>
               </CardContent>
@@ -145,52 +248,6 @@ export default function ProfilePage() {
     );
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!profileData || !profile) return;
-    console.log('profileData to save:', profileData);
-    try {
-      const validationResult = profileSchema.safeParse(profileData);
-      
-      if (!validationResult.success) {
-        const errors = validationResult.error.errors;
-        errors.forEach(error => {
-          const field = error.path[0] as string;
-          addShakeEffect(field);
-        });
-
-        errors.forEach(error => {
-          toast.error(error.message, {
-            duration: 3000,
-            style: { maxWidth: '500px' }
-          });
-        });
-        return;
-      }
-
-      await updateProfile({ ...profileData, authority: profile.authority });
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setIsEditing(false);
-      toast.success('프로필이 업데이트되었습니다.');
-    } catch (error) {
-      console.error(error);
-      toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
-    }
-  };
-
-  const handleResumeChange = async (resume: Resume) => {
-    try {
-      await updateUserResume(resume);
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setResumeData(resume);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   return (
     <div className="bg-gray-50">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -209,81 +266,77 @@ export default function ProfilePage() {
                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
                 className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
                 variant={isEditing ? "default" : "outline"}
-                disabled={isUpdating}
               >
-                {isEditing ? (
-                  <>
-                    {isUpdating ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    저장
-                  </>
+                {isUpdating || isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : isEditing ? (
+                  <Save className="h-4 w-4 mr-2" />
                 ) : (
-                  <>
-                    <Edit className="h-4 w-4 mr-2" />
-                    편집
-                  </>
+                  <Edit className="h-4 w-4 mr-2" />
                 )}
+                {isEditing ? "저장" : "편집"}
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block mb-1 font-medium text-gray-700">이름</label>
+                  <Label htmlFor="name" className="block mb-1 font-medium text-gray-700">이름</Label>
                   <Input
                     id="name"
-                    value={profileData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    disabled={!isEditing}
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
                     className={cn(
+                      "h-10 w-full rounded-md",
                       shakingFields.includes('name') && shakeAnimation
                     )}
                     placeholder="이름"
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label htmlFor="studentId" className="block mb-1 font-medium text-gray-700">학번</label>
-                  <Input 
-                    id="studentId" 
-                    value={profileData.studentNumber} 
-                    onChange={(e) => handleInputChange("studentNumber", e.target.value)}
-                    disabled={!isEditing}
+                  <Label htmlFor="studentNumber" className="block mb-1 font-medium text-gray-700">학번</Label>
+                  <Input
+                    id="studentNumber"
+                    value={formData.studentNumber}
+                    onChange={(e) => handleInputChange('studentNumber', e.target.value)}
                     className={cn(
+                      "h-10 w-full rounded-md",
                       shakingFields.includes('studentNumber') && shakeAnimation
                     )}
                     placeholder="학번 (예: 3111)"
                     maxLength={4}
                     type="number"
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block mb-1 font-medium text-gray-700">이메일</label>
+                  <Label htmlFor="email" className="block mb-1 font-medium text-gray-700">이메일</Label>
                   <Input
                     id="email"
-                    value={profileData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    disabled={!isEditing}
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
                     className={cn(
+                      "h-10 w-full rounded-md",
                       shakingFields.includes('email') && shakeAnimation
                     )}
                     placeholder="이메일"
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block mb-1 font-medium text-gray-700">전화번호</label>
+                  <Label htmlFor="phoneNumber" className="block mb-1 font-medium text-gray-700">전화번호</Label>
                   <Input
                     id="phoneNumber"
-                    value={profileData.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                    disabled={!isEditing}
+                    value={formData.phoneNumber}
+                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                     className={cn(
+                      "h-10 w-full rounded-md",
                       shakingFields.includes('phoneNumber') && shakeAnimation
                     )}
-                    maxLength={11}
                     placeholder="숫자만 입력 (예: 01012345123)"
+                    maxLength={11}
                     type="number"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -296,7 +349,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <ResumeUpload
-                currentResume={resumeData}
+                currentResume={formData.resume}
                 onResumeChange={handleResumeChange}
                 editable={true}
               />
