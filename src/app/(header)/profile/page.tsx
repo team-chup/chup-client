@@ -214,7 +214,11 @@ export default function ProfilePage() {
                   <Input 
                     id="studentId" 
                     value={profileData.studentNumber} 
-                    disabled={true}
+                    onChange={(e) => handleInputChange("studentNumber", e.target.value)}
+                    disabled={!isEditing}
+                    className={cn(
+                      shakingFields.includes('studentNumber') && shakeAnimation
+                    )}
                   />
                 </div>
 
