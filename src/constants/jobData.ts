@@ -24,16 +24,16 @@ export const LOCATIONS: Option[] = [
 ]
 
 export const POSITIONS: Option[] = [
-  { value: "frontend", label: "프론트엔드 개발자" },
-  { value: "backend", label: "백엔드 개발자" },
-  { value: "fullstack", label: "풀스택 개발자" },
-  { value: "mobile", label: "모바일 개발자" },
-  { value: "devops", label: "DevOps 엔지니어" },
-  { value: "data", label: "데이터 엔지니어" },
-  { value: "ai_ml", label: "AI/ML 엔지니어" },
-  { value: "qa", label: "QA 엔지니어" },
-  { value: "ui_ux", label: "UI/UX 디자이너" },
-  { value: "product", label: "프로덕트 매니저" }
+  { value: "프론트엔드 개발자", label: "프론트엔드 개발자" },
+  { value: "백엔드 개발자", label: "백엔드 개발자" },
+  { value: "풀스택 개발자", label: "풀스택 개발자" },
+  { value: "모바일 개발자", label: "모바일 개발자" },
+  { value: "DevOps 엔지니어", label: "DevOps 엔지니어" },
+  { value: "데이터 엔지니어", label: "데이터 엔지니어" },
+  { value: "AI/ML 엔지니어", label: "AI/ML 엔지니어" },
+  { value: "QA 엔지니어", label: "QA 엔지니어" },
+  { value: "UI/UX 디자이너", label: "UI/UX 디자이너" },
+  { value: "프로덕트 매니저", label: "프로덕트 매니저" }
 ]
 
 export const EMPLOYMENT_TYPES: Option[] = [
