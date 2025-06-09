@@ -65,8 +65,8 @@ export default function JobCard({
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span className={daysLeft <= 3 ? "text-red-600 font-medium" : ""}>
-                    {daysLeft > 0 ? `${daysLeft}일 남음` : "마감"}
+                  <span className={typeof daysLeft === 'string' && daysLeft === "마감" ? "text-red-600 font-medium" : ""}>
+                    {daysLeft}
                   </span>
                 </div>
               </div>
