@@ -24,7 +24,6 @@ const studentNavItems = [
 const adminNavItems = [
   { name: "대시보드", href: "/admin", key: "dashboard" },
   { name: "학생 관리", href: "/admin/students", key: "students" },
-  { name: "통계", href: "/admin/analytics", key: "analytics" },
 ]
 
 export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
