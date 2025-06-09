@@ -59,21 +59,16 @@ export default function ProfilePage() {
               <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
               <p className="text-gray-600 mt-1">개인정보와 설정을 관리하세요</p>
             </div>
-            <Button
-              disabled
-              variant="outline"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              편집
-            </Button>
           </div>
 
           <div className="grid gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  기본 정보
-                </CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">기본 정보</CardTitle>
+                <Button disabled variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  편집
+                </Button>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -81,17 +76,14 @@ export default function ProfilePage() {
                     <label className="block mb-1 font-medium text-gray-700">이름</label>
                     <Skeleton className="h-10 w-full bg-gray-200" />
                   </div>
-
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">학번</label>
                     <Skeleton className="h-10 w-full bg-gray-200" />
                   </div>
-
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">이메일</label>
                     <Skeleton className="h-10 w-full bg-gray-200" />
                   </div>
-
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">전화번호</label>
                     <Skeleton className="h-10 w-full bg-gray-200" />
@@ -163,36 +155,34 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
             <p className="text-gray-600 mt-1">개인정보와 설정을 관리하세요</p>
           </div>
-          <Button
-            onClick={isEditing ? handleSave : () => setIsEditing(true)}
-            className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
-            variant={isEditing ? "default" : "outline"}
-            disabled={isUpdating}
-          >
-            {isEditing ? (
-              <>
-                {isUpdating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                저장
-              </>
-            ) : (
-              <>
-                <Edit className="h-4 w-4 mr-2" />
-                편집
-              </>
-            )}
-          </Button>
         </div>
 
         <div className="grid gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                기본 정보
-              </CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">기본 정보</CardTitle>
+              <Button
+                onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
+                variant={isEditing ? "default" : "outline"}
+                disabled={isUpdating}
+              >
+                {isEditing ? (
+                  <>
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    저장
+                  </>
+                ) : (
+                  <>
+                    <Edit className="h-4 w-4 mr-2" />
+                    편집
+                  </>
+                )}
+              </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -208,7 +198,6 @@ export default function ProfilePage() {
                     )}
                   />
                 </div>
-
                 <div>
                   <label htmlFor="studentId" className="block mb-1 font-medium text-gray-700">학번</label>
                   <Input 
@@ -221,7 +210,6 @@ export default function ProfilePage() {
                     )}
                   />
                 </div>
-
                 <div>
                   <label htmlFor="email" className="block mb-1 font-medium text-gray-700">이메일</label>
                   <Input
@@ -234,7 +222,6 @@ export default function ProfilePage() {
                     )}
                   />
                 </div>
-
                 <div>
                   <label htmlFor="phone" className="block mb-1 font-medium text-gray-700">전화번호</label>
                   <Input
@@ -256,8 +243,7 @@ export default function ProfilePage() {
               <CardTitle className="flex items-center gap-2">이력서</CardTitle>
             </CardHeader>
             <CardContent>
-              {isEditing ? (
-                <ResumeUpload
+              <ResumeUpload
                   currentResume={profileData.resume}
                   onResumeChange={(resume) => {
                     setProfileData(prev => prev ? ({
@@ -266,30 +252,6 @@ export default function ProfilePage() {
                     }) : null);
                   }}
                 />
-              ) : (
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-gray-400" />
-                  <div>
-                    {profileData.resume.type === "PDF" ? (
-                      <>
-                        <p className="font-medium">{profileData.resume.name || "이력서가 없습니다"}</p>
-                        {profileData.resume.size && (
-                          <p className="text-sm text-gray-500">
-                            {profileData.resume.size ? formatFileSize(profileData.resume.size) : '파일이 업로드되지 않았습니다'}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-medium">이력서 링크</p>
-                        <p className="text-sm text-blue-600 hover:underline cursor-pointer">
-                          {profileData.resume.url || "링크가 설정되지 않았습니다"}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
