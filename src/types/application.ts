@@ -25,6 +25,11 @@ export type ApplicationStatus = 'PENDING' | 'ANNOUNCED';
 
 export type ResultStatus = 'FIRST' | 'FAILED';
 
+export interface ResultRequest {
+  status: ResultStatus;
+  failedReason?: string;
+}
+
 export interface Position {
   id: number;
   name: string;
@@ -40,6 +45,14 @@ export interface ApplicationResult {
   status: ResultStatus;
   failedReason?: string;
   announcedAt: string;
+  createAt?: string;
+}
+
+export interface Applicant {
+  name: string;
+  email: string;
+  studentNumber: string;
+  phoneNumber: string;
 }
 
 export interface Application {
@@ -57,7 +70,22 @@ export interface Application {
   createAt: string;
 }
 
+export interface DetailedApplication {
+  id: number;
+  applicant: Applicant;
+  position: Position;
+  resume: Resume;
+  status: ApplicationStatus;
+  result?: ApplicationResult;
+  createAt: string;
+}
+
 export interface ApplicationsResponse {
   count: number;
   applications: Application[];
+}
+
+export interface DetailedApplicationsResponse {
+  count: number;
+  applications: DetailedApplication[];
 } 
