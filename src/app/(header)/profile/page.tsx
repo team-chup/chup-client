@@ -110,12 +110,32 @@ export default function ProfilePage() {
                 <CardTitle className="flex items-center gap-2">이력서</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-gray-400" />
+                <div className="space-y-2">
                   <div>
-                    <Skeleton className="h-5 w-[200px] bg-gray-200" />
-                    <Skeleton className="h-4 w-[150px] bg-gray-200 mt-1" />
+                    <div className="flex gap-6 mt-2">
+                      <div className="flex items-center gap-3">
+                        <div className="h-4 w-4 rounded-full border border-primary"></div>
+                        <span className="text-sm font-normal">PDF 파일</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-4 w-4 rounded-full border border-primary"></div>
+                        <span className="text-sm font-normal">링크</span>
+                      </div>
+                    </div>
                   </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-gray-400" />
+                        <div className="min-h-[44px] flex flex-col justify-center">
+                          <Skeleton className="h-4 w-[150px] bg-gray-200 mt-1" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Skeleton className="h-[100px] w-full bg-gray-200 rounded-lg" />
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
