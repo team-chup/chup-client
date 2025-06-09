@@ -20,11 +20,11 @@ export function DatePicker({ date, onDateChange, placeholder = "날짜를 선택
           variant={"outline"}
           className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4 " />
           {date ? format(date, "yyyy-MM-dd") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0 bg-white">
         <Calendar mode="single" selected={date || undefined} onSelect={onDateChange} initialFocus />
       </PopoverContent>
     </Popover>
