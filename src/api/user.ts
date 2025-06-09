@@ -1,5 +1,5 @@
 import { instance } from '../lib/axios';
-import { UserProfile } from '@/types/user';
+import { Resume, UserProfile } from '@/types/user';
 
 export const getUserProfile = async (): Promise<UserProfile> => {
   const response = await instance.get<UserProfile>('/user/me');
@@ -8,5 +8,10 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 
 export const updateUserProfile = async (data: UserProfile): Promise<void> => {
   const response = await instance.put('/user/me', data);
+  return response.data;
+}
+
+export const updateUserResume = async (data: Resume): Promise<void> => {
+  const response = await instance.patch('/user/me/resume', data);
   return response.data;
 }

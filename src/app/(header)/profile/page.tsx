@@ -7,24 +7,41 @@ import { Save, Edit, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { UserProfile } from "@/types/user"
+import { Resume } from "@/types/user"
+import { Authority } from "@/types/auth"
 import { toast } from "sonner"
 import ResumeUpload from "@/components/ResumeUpload"
-import { formatFileSize } from "@/utils/formatFileSize"
-import { signupSchema } from "@/schemas/user"
+import { profileSchema } from "@/schemas/user"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { useProfileMutation } from "@/hooks/useProfileMutation"
+import { updateUserResume } from "@/api/user"
+import { useQueryClient } from '@tanstack/react-query';
+
+type UserProfileWithResume = {
+  name: string;
+  email: string;
+  studentNumber: string;
+  phoneNumber: string;
+  authority: Authority;
+  resume: Resume;
+};
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
-  const [profileData, setProfileData] = useState<UserProfile | null>(null)
+  const [profileData, setProfileData] = useState<{
+    name: string;
+    email: string;
+    studentNumber: string;
+    phoneNumber: string;
+  }>({ name: '', email: '', studentNumber: '', phoneNumber: '' })
+  const [resumeData, setResumeData] = useState<Resume | null>(null)
   const [shakingFields, setShakingFields] = useState<string[]>([])
   const { data: profile, isLoading } = useProfileQuery()
   const { updateProfile, isUpdating } = useProfileMutation()
-
   const shakeAnimation = "animate-shake"
+  const queryClient = useQueryClient();
 
   const addShakeEffect = (fieldName: string) => {
     setShakingFields(prev => [...prev, fieldName])
@@ -35,22 +52,18 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
+      const p = profile as UserProfileWithResume;
       setProfileData({
-        name: profile.name,
-        studentNumber: profile.studentNumber,
-        email: profile.email,
-        phoneNumber: profile.phoneNumber,
-        authority: profile.authority,
-        resume: {
-          name: profile.resume.name || '',
-          type: profile.resume.type || 'LINK',
-          url: profile.resume.url || ''
-        }
+        name: p.name,
+        studentNumber: p.studentNumber,
+        email: p.email,
+        phoneNumber: p.phoneNumber,
       });
+      setResumeData(p.resume)
     }
   }, [profile])
 
-  if (isLoading || !profileData) {
+  if (isLoading || !resumeData) {
     return (
       <div className="bg-gray-50">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -113,14 +126,14 @@ export default function ProfilePage() {
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setProfileData(prev => prev ? ({ ...prev, [field]: value }) : null);
+    setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
-    if (!profileData) return;
-
+    if (!profileData || !profile) return;
+    console.log('profileData to save:', profileData);
     try {
-      const validationResult = signupSchema.safeParse(profileData);
+      const validationResult = profileSchema.safeParse(profileData);
       
       if (!validationResult.success) {
         const errors = validationResult.error.errors;
@@ -138,7 +151,8 @@ export default function ProfilePage() {
         return;
       }
 
-      await updateProfile(profileData);
+      await updateProfile({ ...profileData, authority: profile.authority });
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
       setIsEditing(false);
       toast.success('프로필이 업데이트되었습니다.');
     } catch (error) {
@@ -146,6 +160,16 @@ export default function ProfilePage() {
       toast.error('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
     }
   };
+
+  const handleResumeChange = async (resume: Resume) => {
+    setResumeData(resume)
+    try {
+      await updateUserResume(resume)
+      toast.success('이력서가 저장되었습니다.')
+    } catch (error) {
+      toast.error('이력서 저장에 실패했습니다.')
+    }
+  }
 
   return (
     <div className="bg-gray-50">
@@ -244,14 +268,9 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <ResumeUpload
-                  currentResume={profileData.resume}
-                  onResumeChange={(resume) => {
-                    setProfileData(prev => prev ? ({
-                      ...prev,
-                      resume
-                    }) : null);
-                  }}
-                />
+                currentResume={resumeData}
+                onResumeChange={handleResumeChange}
+              />
             </CardContent>
           </Card>
         </div>
