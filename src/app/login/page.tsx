@@ -14,6 +14,13 @@ import { Button } from '@/components/ui/button';
 export default function LoginPage() {
   const router = useRouter();
 
+  const isAllowedEmail = (email: string) => {
+    if (email.endsWith('@gsm.hs.kr')) return true;
+    
+    const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS?.split(',').map(email => email.trim()) || [];
+    if (allowedEmails.includes(email)) return true;
+  };
+
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -22,8 +29,8 @@ export default function LoginPage() {
         });
         const userInfo = await userInfoResponse.json();
 
-        if (!userInfo.email?.endsWith('@gsm.hs.kr')) {
-          toast.error('GSM 계정으로만 로그인이 가능합니다.');
+        if (!isAllowedEmail(userInfo.email)) {
+          toast.error('허용된 계정으로만 로그인이 가능합니다.');
           return;
         }
 
@@ -41,9 +48,13 @@ export default function LoginPage() {
         setCookie('accessToken', data.accessToken);
         setCookie('refreshToken', data.refreshToken);
         
-        const nextPage = data.authority === 'TEMP' ? '/signup' : '/';
+        let nextPage = '/';
+        if (data.authority === 'TEMP') {
+          nextPage = '/signup';
+        } else if (data.authority === 'TEACHER') {
+          nextPage = '/admin/main';
+        }
         router.push(nextPage);
-        console.log(data.authority);
 
       } catch (error: any) {
         console.error('로그인 오류:', error);

@@ -22,7 +22,6 @@ const UserForm = ({
             maxLength={4}
             value={formData.name}
             onChange={onChange}
-            placeholder="이름"
           />
         </div>
   
@@ -37,7 +36,6 @@ const UserForm = ({
             required
             value={formData.email}
             onChange={onChange}
-            placeholder="이메일"
           />
         </div>
   
@@ -55,7 +53,6 @@ const UserForm = ({
             maxLength={4}
             value={formData.studentNumber}
             onChange={onChange}
-            placeholder="학번 (예: 3111)"
           />
         </div>
   
@@ -73,7 +70,6 @@ const UserForm = ({
             maxLength={11}
             value={formData.phoneNumber}
             onChange={onChange}
-            placeholder="전화번호 (예: 01012345123)"
           />
         </div>
       </>
