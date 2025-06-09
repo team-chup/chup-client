@@ -72,30 +72,22 @@ export default function ResumeUpload({
     if (type === 'LINK') {
       setSelectedFile(null);
       setResumeLink('');
-      onResumeChange({
-        name: 'LINK',
-        type: 'LINK',
-        url: ''
-      });
     } else {
       setResumeLink('');
       setSelectedFile(null);
-      onResumeChange({
-        name: '',
-        type: 'PDF',
-        url: ''
-      });
     }
   };
 
   const handleResumeLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const link = e.target.value;
     setResumeLink(link);
-    onResumeChange({
-      name: 'LINK',
-      type: 'LINK',
-      url: link
-    });
+    if (link.trim()) {
+      onResumeChange({
+        name: 'LINK',
+        type: 'LINK',
+        url: link
+      });
+    }
   };
 
   const handleFileClear = () => {
