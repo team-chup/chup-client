@@ -162,12 +162,12 @@ export default function ProfilePage() {
   };
 
   const handleResumeChange = async (resume: Resume) => {
-    setResumeData(resume)
     try {
-      await updateUserResume(resume)
-      toast.success('이력서가 저장되었습니다.')
+      await updateUserResume(resume);
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
+      setResumeData(resume);
     } catch (error) {
-      toast.error('이력서 저장에 실패했습니다.')
+      console.error(error);
     }
   }
 
@@ -270,6 +270,7 @@ export default function ProfilePage() {
               <ResumeUpload
                 currentResume={resumeData}
                 onResumeChange={handleResumeChange}
+                editable={true}
               />
             </CardContent>
           </Card>
