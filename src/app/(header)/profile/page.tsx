@@ -240,6 +240,7 @@ export default function ProfilePage() {
                     className={cn(
                       shakingFields.includes('name') && shakeAnimation
                     )}
+                    placeholder="이름"
                   />
                 </div>
                 <div>
@@ -252,6 +253,9 @@ export default function ProfilePage() {
                     className={cn(
                       shakingFields.includes('studentNumber') && shakeAnimation
                     )}
+                    placeholder="학번 (예: 3111)"
+                    maxLength={4}
+                    type="number"
                   />
                 </div>
                 <div>
@@ -264,6 +268,7 @@ export default function ProfilePage() {
                     className={cn(
                       shakingFields.includes('email') && shakeAnimation
                     )}
+                    placeholder="이메일"
                   />
                 </div>
                 <div>
@@ -276,6 +281,9 @@ export default function ProfilePage() {
                     className={cn(
                       shakingFields.includes('phoneNumber') && shakeAnimation
                     )}
+                    maxLength={11}
+                    placeholder="숫자만 입력 (예: 01012345123)"
+                    type="number"
                   />
                 </div>
               </div>
