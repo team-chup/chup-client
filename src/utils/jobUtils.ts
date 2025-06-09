@@ -56,5 +56,7 @@ export const getDaysLeft = (endAt: string) => {
   const endDate = new Date(endAt)
   const diffTime = endDate.getTime() - today.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  return diffDays
+  if (diffDays <= 0) return "마감"
+  if (diffDays === 1) return "D-Day"
+  return `D-${diffDays - 1}`
 } 
