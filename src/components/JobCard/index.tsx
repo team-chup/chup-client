@@ -34,7 +34,7 @@ export default function JobCard({
   const daysLeft = getDaysLeft(endAt)
 
   return (
-    <Card key={id} className="hover:shadow-md transition-shadow cursor-pointer">
+    <Card key={id} className="hover:shadow-md transition-shadow bg-white">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4 flex-1">
@@ -76,13 +76,13 @@ export default function JobCard({
           <div className={`flex ${authority === "TEACHER" ? "items-center gap-2" : "flex-col items-end gap-2"}`}>
             {authority === "TEACHER" ? (
               <>
-                <Link href={`/applications/${id}`}>
+                <Link href={`/admin/applications/${id}`}>
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-2" />
                     지원 현황
                   </Button>
                 </Link>
-                <Link href={`/edit-job/${id}`}>
+                <Link href={`/admin/edit/${id}`}>
                   <Button variant="outline" size="sm">
                     <Settings className="h-4 w-4 mr-2" />
                     수정
