@@ -260,12 +260,23 @@ export default function ResumeUpload({
                   <>
                     {isUploading ? (
                       <div className="space-y-2">
-                        <Skeleton className="h-[20px] w-[200px] bg-gray-200" />
                         <Skeleton className="h-[16px] w-[100px] bg-gray-200" />
                       </div>
                     ) : (
                       <>
-                        <p className="font-medium">{tempResume.name ? tempResume.name : '파일 업로드'}</p>
+                        {tempResume.name && (
+                          <p className="text-md hover:underline cursor-pointer">
+                            <a 
+                              href={tempResume.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              {tempResume.name.length > 40
+                                ? `${tempResume.name.slice(0, 37)}...`
+                                : tempResume.name}
+                            </a>
+                          </p>
+                        )}
                         <p className="text-sm text-gray-500">
                           {tempResume.size ? formatFileSize(tempResume.size) : ''}
                         </p>
@@ -274,13 +285,20 @@ export default function ResumeUpload({
                   </>
                 ) : (
                   <>
-                    <p className="font-medium">이력서 링크</p>
-                    <p className="text-sm text-blue-600 hover:underline cursor-pointer">
-                      {tempResume?.url
-                        ? tempResume.url.length > 40
-                          ? `${tempResume.url.slice(0, 37)}...`
-                          : tempResume.url
-                        : "URL이 설정되지 않았습니다"}
+                    <p className="text-md text-blue-600 hover:underline cursor-pointer">
+                      {tempResume?.url ? (
+                        <a 
+                          href={tempResume.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {tempResume.url.length > 40
+                            ? `${tempResume.url.slice(0, 37)}...`
+                            : tempResume.url}
+                        </a>
+                      ) : (
+                        "URL이 설정되지 않았습니다"
+                      )}
                     </p>
                   </>
                 )}
