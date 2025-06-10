@@ -25,11 +25,9 @@ export const logout = () => {
   refreshSubscribers = [];
   removeCookie('accessToken');
   removeCookie('refreshToken');
-  console.log('[토큰 재발급] 로그아웃 처리됨');
-  // window.location.href = authConfig.signInPage; // 주석 처리: 리디렉션 방지
+  window.location.href = authConfig.signInPage;
 };
 
-// 쿠키에서 특정 이름의 값을 추출하는 함수
 const getCookieValue = (name: string): string | null => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -67,7 +65,6 @@ export const handleTokenRefresh = async (error: AxiosError) => {
         originalRequest.headers.Authorization = `Bearer ${token}`;
         return instance(originalRequest);
       } catch (err) {
-        console.log(err);
         return Promise.reject(err);
       }
     }
