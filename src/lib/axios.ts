@@ -22,10 +22,13 @@ instance.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.error(config.method?.toUpperCase(), config.url);
     }
     return config;
   },
   (error: AxiosError) => {
+    console.error('[Axios] 요청 인터셉터 에러:', error);
     return Promise.reject(error);
   },
 );
@@ -35,6 +38,11 @@ instance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    console.error(error.config?.method?.toUpperCase(), error.config?.url, {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
     return handleTokenRefresh(error);
   },
 ); 
