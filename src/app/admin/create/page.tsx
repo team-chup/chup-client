@@ -14,6 +14,19 @@ export default function CreateJobPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const formatDateForAPI = (date: Date | null): string => {
+    if (!date) return "";
+    
+    // 날짜의 시간을 정오(12:00)로 설정하여 시간대 변환 시 날짜가 바뀌는 문제 방지
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    
+    // 한국 시간 기준 정오로 설정
+    const adjustedDate = new Date(year, month, day, 15, 0, 0);
+    return adjustedDate.toISOString();
+  };
+
   const handleSubmit = async (
     formData: JobFormData, 
     selectedPositions: number[], 
@@ -27,8 +40,9 @@ export default function CreateJobPage() {
         ? "SEOUL"
         : LOCATION_MAPPING[finalLocation] || "SEOUL";
       
-      const startAt = formData.startDate ? formData.startDate.toISOString() : "";
-      const endAt = formData.endDate ? formData.endDate.toISOString() : "";
+      // 수정된 날짜 변환 함수 사용
+      const startAt = formatDateForAPI(formData.startDate);
+      const endAt = formatDateForAPI(formData.endDate);
       
       const requestData: CreateJobPostingRequest = {
         companyName: formData.company,
