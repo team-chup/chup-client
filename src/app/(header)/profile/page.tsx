@@ -264,7 +264,7 @@ export default function ProfilePage() {
               <CardTitle className="flex items-center gap-2">기본 정보</CardTitle>
               <Button
                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                className={isEditing ? "bg-blue-100 hover:bg-blue-200 border border-blue-300" : ""}
+                className={isEditing ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
                 variant={isEditing ? "default" : "outline"}
               >
                 {isUpdating || isSaving ? (

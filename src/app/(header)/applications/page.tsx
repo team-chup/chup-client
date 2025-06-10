@@ -274,8 +274,8 @@ export default function ApplicationsPage() {
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">지원 내역이 없습니다</h3>
-                <p className="text-gray-600 mb-4">채용 공고에 지원해보세요!</p>
-                <Button className="bg-blue-100 hover:bg-blue-200 border border-blue-300" onClick={() => router.push('/main')}>채용공고 보러가기</Button>
+                <p className="text-gray-600 mb-4">새로운 채용 공고에 지원해보세요.</p>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => router.push('/main')}>채용공고 보러가기</Button>
               </div>
             )}
           </>
