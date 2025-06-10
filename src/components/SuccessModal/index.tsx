@@ -30,7 +30,7 @@ export default function SuccessModal({ companyName, positionName, onClose }: Suc
         gravity: 0.8,
         ticks: 150
       })
-    }, 500)
+    }, 100)
 
     return () => clearTimeout(timer)
   }, [])

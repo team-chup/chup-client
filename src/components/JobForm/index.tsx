@@ -408,6 +408,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
                       id={`position-${position.id}`}
                       checked={selectedPositions.includes(position.id)}
                       onCheckedChange={(checked) => togglePosition(position.id, !!checked)}
+                      className="border-zinc-900 data-[state=checked]:bg-zinc-900 data-[state=checked]:text-white"
                     />
                     <Label htmlFor={`position-${position.id}`} className="text-sm">
                       {position.name}
