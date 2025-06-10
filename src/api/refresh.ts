@@ -1,7 +1,9 @@
 import { AxiosError } from 'axios';
+import axios from 'axios';
 import { instance } from '../lib/axios';
 import { authConfig } from '../lib/config/auth';
 import { setCookie, removeCookie } from '../lib/cookie';
+import { baseURL } from '../lib/axios';
 
 const TIMEOUT = 10_000;
 
@@ -26,6 +28,19 @@ export const logout = () => {
   window.location.href = authConfig.signInPage;
 };
 
+const getCookieValue = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const part = parts.pop();
+    if (part) {
+      const endIndex = part.indexOf(';');
+      return endIndex !== -1 ? part.substring(0, endIndex) : part;
+    }
+  }
+  return null;
+};
+
 export const handleTokenRefresh = async (error: AxiosError) => {
   const originalRequest = error.config;
     
@@ -38,6 +53,7 @@ export const handleTokenRefresh = async (error: AxiosError) => {
   }
 
   if (error.response?.status === 401) {
+    
     if (isRefreshing) {
       try {
         const token = await new Promise<string>((resolve, reject) => {
@@ -56,19 +72,14 @@ export const handleTokenRefresh = async (error: AxiosError) => {
     isRefreshing = true;
 
     try {
-      const refreshToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('refreshToken='))
-        ?.split('=')[1];
+      const refreshToken = getCookieValue('refreshToken');
 
-      if (!refreshToken) {
-        throw new Error('No refresh token');
-      }
-
-      const response = await instance.post<TokenResponse>('/auth/refresh', null, {
+      const response = await axios.post<TokenResponse>(`${baseURL}/auth/refresh`, null, {
         headers: {
-          Authorization: `Bearer ${refreshToken}`
-        }
+          'Content-Type': 'application/json',
+          RefreshToken: refreshToken
+        },
+        timeout: TIMEOUT
       });
 
       const { accessToken, refreshToken: newRefreshToken } = response.data;
@@ -81,8 +92,11 @@ export const handleTokenRefresh = async (error: AxiosError) => {
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       return instance(originalRequest);
     } catch (error) {
+      console.error(error);
       isRefreshing = false;
+      
       logout();
+      
       return Promise.reject(new Error('Token refresh failed'));
     }
   }
