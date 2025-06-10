@@ -109,12 +109,12 @@ export default function ApplicationManagementPage() {
     console.log(selectedApplicants)
   }
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: string, resultStatus?: ResultStatus) => {
     switch (status) {
       case 'PENDING':
         return "지원완료"
       case 'ANNOUNCED':
-        return selectedApplicant?.result?.status === 'FIRST' ? "서류통과" : "불합격"
+        return resultStatus === 'FIRST' ? "서류통과" : "불합격"
       default:
         return status
     }
@@ -183,7 +183,11 @@ export default function ApplicationManagementPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Checkbox checked={selectedApplicants.length === applications.length} onCheckedChange={handleSelectAll} />
+              <Checkbox 
+                checked={selectedApplicants.length === applications.length} 
+                onCheckedChange={handleSelectAll} 
+                className="border-zinc-900 data-[state=checked]:bg-zinc-900 data-[state=checked]:text-white"
+              />
               <span className="text-sm text-gray-600">
                 {selectedApplicants.length > 0 ? `${selectedApplicants.length}명 선택됨` : "전체 선택"}
               </span>
@@ -209,19 +213,20 @@ export default function ApplicationManagementPage() {
         {/* Applicants List */}
         <div className="space-y-4">
           {applications.map((application) => (
-            <Card key={application.id} className="hover:shadow-md transition-shadow">
+            <Card key={application.id} className="hover:shadow-md transition-shadow bg-white">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <Checkbox
                     checked={selectedApplicants.includes(application.id)}
                     onCheckedChange={() => handleApplicantToggle(application.id)}
+                    className="border-zinc-900 data-[state=checked]:bg-zinc-900 data-[state=checked]:text-white"
                   />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">{application.applicant.name}</h3>
                       <Badge className={getStatusColor(application.status, application.result?.status)}>
-                        {getStatusText(application.status)}
+                        {getStatusText(application.status, application.result?.status)}
                       </Badge>
                     </div>
 
