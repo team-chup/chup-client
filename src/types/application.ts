@@ -45,7 +45,7 @@ export interface ApplicationResult {
   status: ResultStatus;
   failedReason?: string;
   announcedAt: string;
-  createAt?: string;
+  createdAt?: string;
 }
 
 export interface Applicant {
@@ -67,7 +67,7 @@ export interface Application {
   result?: ApplicationResult;
   startAt: string;
   endAt: string;
-  createAt: string;
+  createdAt: string;
 }
 
 export interface DetailedApplication {
@@ -77,7 +77,7 @@ export interface DetailedApplication {
   resume: Resume;
   status: ApplicationStatus;
   result?: ApplicationResult;
-  createAt: string;
+  createdAt: string;
 }
 
 export interface ApplicationsResponse {
