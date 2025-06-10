@@ -203,8 +203,8 @@ export default function ApplicationsPage() {
               </TabsList>
             </Tabs>
 
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-4">
+            <div className="flex justify-between items-center mb-6 ">
+              <div className="flex items-center gap-4 bg-white">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="정렬 기준" />
@@ -219,7 +219,7 @@ export default function ApplicationsPage() {
 
             <div className="space-y-4">
               {sortedApplications.map((application) => (
-                <Card key={application.id} className="hover:shadow-md transition-shadow">
+                <Card key={application.id} className="hover:shadow-md transition-shadow bg-white">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4 flex-1">
@@ -259,10 +259,10 @@ export default function ApplicationsPage() {
                           <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                         </div>
 
-                        <Button variant="outline" size="sm">
+                        {/* <Button variant="outline" size="sm">
                           <FileText className="h-4 w-4 mr-2" />
                           상세보기
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   </CardContent>

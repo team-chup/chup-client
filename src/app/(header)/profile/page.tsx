@@ -178,7 +178,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid gap-6">
-            <Card>
+            <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">기본 정보</CardTitle>
                 <Button disabled variant="outline">
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">이력서</CardTitle>
               </CardHeader>
@@ -259,7 +259,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid gap-6">
-          <Card>
+          <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">기본 정보</CardTitle>
               <Button
@@ -343,7 +343,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">이력서</CardTitle>
             </CardHeader>

@@ -22,7 +22,6 @@ import { DetailedApplication, DetailedApplicationsResponse, ResultStatus } from 
 import { useParams } from "next/navigation"
 import { format } from "date-fns"
 import { getApplicationById, announceResult } from "@/api/myApplications"
-import { downloadApplications } from "@/api/posting"
 
 export default function ApplicationManagementPage() {
   const params = useParams()
@@ -107,7 +106,7 @@ export default function ApplicationManagementPage() {
   }
 
   const handleBulkDownload = () => {
-    downloadApplications(applicationId, selectedApplicants)
+    console.log(selectedApplicants)
   }
 
   const getStatusText = (status: string, resultStatus?: ResultStatus) => {
@@ -202,7 +201,7 @@ export default function ApplicationManagementPage() {
               <Button
                 onClick={handleBulkDownload}
                 disabled={applications.length === 0}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
                 전체 다운로드
@@ -293,13 +292,13 @@ export default function ApplicationManagementPage() {
                         <Button
                           size="sm"
                           onClick={() => setSelectedApplicant(application)}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
                           disabled={application.status === 'ANNOUNCED'}
                         >
                           결과 통보
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-md bg-white">
                         <DialogHeader>
                           <DialogTitle>지원 결과 통보</DialogTitle>
                           <DialogDescription>{application.applicant.name} 학생의 지원 결과를 선택해주세요.</DialogDescription>
@@ -339,7 +338,7 @@ export default function ApplicationManagementPage() {
                           <Button
                             onClick={handleResultSubmit}
                             disabled={!result}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             결과 통보
                           </Button>
