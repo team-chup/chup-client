@@ -44,7 +44,7 @@ export default function ApplicationManagementPage() {
       if (isNaN(date.getTime())) {
         return "-";
       }
-      return format(date, 'yyyy-MM-dd');
+      return date.toISOString().split('T')[0];
     } catch (error) {
       console.error(error);
       return "-";
@@ -247,7 +247,7 @@ export default function ApplicationManagementPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>지원일: {formatDate(application.createAt)}</span>
+                        <span>지원일: {formatDate(application.createdAt)}</span>
                       </div>
                     </div>
 

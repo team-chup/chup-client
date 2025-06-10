@@ -89,7 +89,7 @@ export default function ApplicationsPage() {
     company: app.companyName,
     logo: app.companyName.substring(0, 2),
     position: app.position.name,
-    appliedDate: formatDate(app.createAt),
+    startAt: formatDate(app.startAt),
     status: app.result?.status === "FAILED" ? "불합격" : statusMapping[app.status],
     location: `${locationMapping[app.companyLocation] || "기타"} ${app.companyLocation === "SEOUL" ? "서울" : ""}`,
     type: employmentTypeMapping[app.employmentType],
@@ -102,13 +102,13 @@ export default function ApplicationsPage() {
 
   const sortedApplications = [...filteredApplications].sort((a, b) => {
     // 날짜 정렬 함수도 안전하게 처리
-    const dateA = a.appliedDate === "날짜 없음" || a.appliedDate === "유효하지 않은 날짜" || a.appliedDate === "날짜 오류" 
+    const dateA = a.startAt === "날짜 없음" || a.startAt === "유효하지 않은 날짜" || a.startAt === "날짜 오류" 
       ? new Date(0) 
-      : new Date(a.appliedDate);
+      : new Date(a.startAt);
     
-    const dateB = b.appliedDate === "날짜 없음" || b.appliedDate === "유효하지 않은 날짜" || b.appliedDate === "날짜 오류" 
+    const dateB = b.startAt === "날짜 없음" || b.startAt === "유효하지 않은 날짜" || b.startAt === "날짜 오류" 
       ? new Date(0) 
-      : new Date(b.appliedDate);
+      : new Date(b.startAt);
     
     if (sortBy === "latest") {
       return dateB.getTime() - dateA.getTime();
@@ -239,7 +239,7 @@ export default function ApplicationsPage() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              <span>지원일: {application.appliedDate}</span>
+                              <span>지원일: {application.startAt}</span>
                             </div>
                           </div>
 
