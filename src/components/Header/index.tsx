@@ -22,9 +22,8 @@ const studentNavItems = [
 ]
 
 const adminNavItems = [
-  { name: "대시보드", href: "/admin", key: "dashboard" },
-  { name: "학생 관리", href: "/admin/students", key: "students" },
-  { name: "통계", href: "/admin/analytics", key: "analytics" },
+  { name: "채용공고", href: "/admin/main", key: "jobs" },
+  { name: "공고 등록", href: "/admin/create", key: "create" },
 ]
 
 export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
@@ -77,13 +76,6 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
               </a>
             ))}
 
-            {isAdmin && (
-              <Button className="bg-blue-600 hover:bg-blue-700" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                공고 등록
-              </Button>
-            )}
-
             <Button variant="outline" size="sm" onClick={handleLogout}>
               로그아웃
             </Button>
@@ -114,12 +106,6 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
               ))}
 
               <div className="px-4">
-                {isAdmin && (
-                  <Button className="bg-blue-600 hover:bg-blue-700 w-full mb-2">
-                    <Plus className="h-4 w-4 mr-2" />
-                    공고 등록
-                  </Button>
-                )}
                 <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
                   로그아웃
                 </Button>

@@ -1,7 +1,7 @@
-export default function MainPage() {
-    return (
-      <div>
-      </div>
-    );
-  }
-  
+import MainPage from "@/components/MainPage";
+
+export default function NormalMainPage() {
+  return (
+    <MainPage isAdmin={false} />
+  );
+}
