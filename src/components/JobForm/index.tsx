@@ -352,7 +352,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   };
 
   const renderBasicInfoSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
@@ -385,7 +385,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderPositionSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Briefcase className="h-5 w-5" />
@@ -446,7 +446,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderWorkConditionsSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
@@ -507,7 +507,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderApplicationPeriodSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
@@ -537,7 +537,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderAttachmentsSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />

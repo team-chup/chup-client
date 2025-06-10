@@ -52,16 +52,25 @@ export default function CompanyDetailPage() {
                 <Badge className={getTypeColor(posting.employmentType)}>{getEmploymentTypeText(posting.employmentType)}</Badge>
               </div>
 
-            <Button
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
-              asChild
-              disabled={posting.applied}
-            >
-              <Link href={`/apply/${params.id}`}>
-                {posting.applied ? "지원완료" : "지원하기"}
-              </Link>
-            </Button>
+            {posting.applied ? (
+              <Button
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto opacity-50 cursor-not-allowed"
+                disabled
+              >
+                지원완료
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                asChild
+              >
+                <Link href={`/apply/${params.id}`}>
+                  지원하기
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 
