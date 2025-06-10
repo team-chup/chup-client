@@ -58,8 +58,11 @@ export default function EditJobPage({ params }: Props) {
           employmentType: employmentTypeKey,
           startDate,
           endDate,
-          attachments
+          attachments,
+          positions: jobPostingDetail.positions || []
         });
+
+        console.log("포지션 정보:", jobPostingDetail.positions);
       } catch (error) {
         console.error("채용공고 상세 정보 로드 실패:", error);
         toast.error("채용공고 정보를 불러오는데 실패했습니다.");

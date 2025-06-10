@@ -81,6 +81,7 @@ export interface JobFormData {
   startDate: Date | null;
   endDate: Date | null;
   attachments: AttachmentWithFile[];
+  positions?: Position[];
 }
 
 export interface AttachmentWithFile {
@@ -126,6 +127,12 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   useEffect(() => {
     if (initialData) {
       setJobData(initialData);
+      
+      // 초기 데이터에 positions가 있으면 선택된 포지션으로 설정
+      if (initialData.positions && initialData.positions.length > 0) {
+        const positionIds = initialData.positions.map(pos => pos.id);
+        setSelectedPositions(positionIds);
+      }
     }
   }, [initialData]);
 
