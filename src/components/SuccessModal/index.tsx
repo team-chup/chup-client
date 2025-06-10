@@ -21,34 +21,15 @@ export default function SuccessModal({ companyName, positionName, onClose }: Suc
     const timer = setTimeout(() => {
       setShowConfetti(true)
 
-      const duration = 3000
-      const animationEnd = Date.now() + duration
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 51 }
-
-      function randomInRange(min: number, max: number) {
-        return Math.random() * (max - min) + min
-      }
-
-      const interval = setInterval(() => {
-        const timeLeft = animationEnd - Date.now()
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval)
-        }
-
-        const particleCount = 50 * (timeLeft / duration)
-
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        })
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        })
-      }, 250)
+      confetti({
+        particleCount: 100,
+        spread: 100,
+        origin: { x: 0.5, y: 0.6 },
+        colors: ['#2563eb', '#3b82f6', '#60a5fa'],
+        startVelocity: 35,
+        gravity: 0.8,
+        ticks: 150
+      })
     }, 500)
 
     return () => clearTimeout(timer)
@@ -75,7 +56,6 @@ export default function SuccessModal({ companyName, positionName, onClose }: Suc
             {companyName}의 {positionName} 포지션에 성공적으로 지원하셨습니다. 지원 확인 이메일이 발송되었습니다.
           </p>
 
-
           <div className="space-y-3">
             <Button 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
@@ -95,4 +75,4 @@ export default function SuccessModal({ companyName, positionName, onClose }: Suc
       </Card>
     </div>
   )
-} 
+}
