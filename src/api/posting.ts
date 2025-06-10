@@ -48,3 +48,8 @@ export const createPosition = async (name: string): Promise<Position> => {
   const { data } = await instance.post<Position>("/posting/position", { name })
   return data
 }
+
+export const downloadApplications = async (someId: number | string, ids: number[]) => {
+  const { data } = await instance.post(`/posting/download/${someId}?ids=${ids.join(',')}`)
+  return data
+}
