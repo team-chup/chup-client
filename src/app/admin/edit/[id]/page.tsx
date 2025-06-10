@@ -44,7 +44,7 @@ export default function EditJobPage({ params }: Props) {
         const positionIds = jobPostingDetail.positions?.map(position => position.id) || [];
         setInitialPositions(positionIds);
         
-        const attachments: AttachmentWithFile[] = (jobPostingDetail.files || []).map(file => ({
+        const attachmentsWithFile: AttachmentWithFile[] = (jobPostingDetail.files || []).map(file => ({
           file: new File([], file.name), 
           url: file.url,
           name: file.name
@@ -58,8 +58,11 @@ export default function EditJobPage({ params }: Props) {
           employmentType: employmentTypeKey,
           startDate,
           endDate,
-          attachments
+          attachments: attachmentsWithFile,
+          positions: jobPostingDetail.positions || []
         });
+
+        console.log("포지션 정보:", jobPostingDetail.positions);
       } catch (error) {
         console.error("채용공고 상세 정보 로드 실패:", error);
         toast.error("채용공고 정보를 불러오는데 실패했습니다.");
@@ -71,6 +74,17 @@ export default function EditJobPage({ params }: Props) {
     
     loadJobPostingDetail();
   }, [postingId, router]);
+
+  const formatDateForAPI = (date: Date | null): string => {
+    if (!date) return "";
+    
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    
+    const adjustedDate = new Date(year, month, day, 15, 0, 0);
+    return adjustedDate.toISOString();
+  };
 
   const handleSubmit = async (
     formData: JobFormData, 
@@ -85,8 +99,9 @@ export default function EditJobPage({ params }: Props) {
         ? "SEOUL"
         : LOCATION_MAPPING[finalLocation] || "SEOUL";
       
-      const startAt = formData.startDate ? formData.startDate.toISOString() : "";
-      const endAt = formData.endDate ? formData.endDate.toISOString() : "";
+      // 수정된 날짜 변환 함수 사용
+      const startAt = formatDateForAPI(formData.startDate);
+      const endAt = formatDateForAPI(formData.endDate);
       
       const requestData = {
         companyName: formData.company,
@@ -112,6 +127,7 @@ export default function EditJobPage({ params }: Props) {
     }
   };
 
+
   if (isJobPostingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -124,19 +140,22 @@ export default function EditJobPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">채용공고 수정</h1>
           <p className="text-gray-600">채용공고 정보를 수정하여 GSM 학생들에게 정확한 정보를 제공하세요</p>
         </div>
 
+        <div className="grid gap-6">
         <JobForm
           initialData={initialFormData}
           submitButtonText="공고 수정"
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          showAttachments={true}
         />
+        </div>
       </main>
     </div>
   )

@@ -203,8 +203,8 @@ export default function ApplicationsPage() {
               </TabsList>
             </Tabs>
 
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-4">
+            <div className="flex justify-between items-center mb-6 ">
+              <div className="flex items-center gap-4 bg-white">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="정렬 기준" />
@@ -219,7 +219,7 @@ export default function ApplicationsPage() {
 
             <div className="space-y-4">
               {sortedApplications.map((application) => (
-                <Card key={application.id} className="hover:shadow-md transition-shadow">
+                <Card key={application.id} className="hover:shadow-md transition-shadow bg-white">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4 flex-1">
@@ -259,10 +259,10 @@ export default function ApplicationsPage() {
                           <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                         </div>
 
-                        <Button variant="outline" size="sm">
+                        {/* <Button variant="outline" size="sm">
                           <FileText className="h-4 w-4 mr-2" />
                           상세보기
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   </CardContent>
@@ -274,8 +274,8 @@ export default function ApplicationsPage() {
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">지원 내역이 없습니다</h3>
-                <p className="text-gray-600 mb-4">채용 공고에 지원해보세요!</p>
-                <Button className="bg-blue-100 hover:bg-blue-200 border border-blue-300" onClick={() => router.push('/main')}>채용공고 보러가기</Button>
+                <p className="text-gray-600 mb-4">새로운 채용 공고에 지원해보세요.</p>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => router.push('/main')}>채용공고 보러가기</Button>
               </div>
             )}
           </>

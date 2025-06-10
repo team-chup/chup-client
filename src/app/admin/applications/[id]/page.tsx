@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Download, Mail, Users, Calendar } from "lucide-react"
+import { Calendar, Download, Mail, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,8 +20,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { DetailedApplication, DetailedApplicationsResponse, ResultStatus } from "@/types/application"
 import { useParams } from "next/navigation"
-import { format } from "date-fns"
 import { getApplicationById, announceResult } from "@/api/myApplications"
+import { useJobPostingQuery } from "@/hooks/useJobPostingQuery"
+import { getLocationText } from "@/utils/jobUtils"
+import { formatDate } from "@/utils/dateUtils"
 
 export default function ApplicationManagementPage() {
   const params = useParams()
@@ -36,20 +38,7 @@ export default function ApplicationManagementPage() {
   const [result, setResult] = useState<string>("")
   const [rejectionReason, setRejectionReason] = useState<string>("")
 
-  const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return "-";
-    
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "-";
-      }
-      return date.toISOString().split('T')[0];
-    } catch (error) {
-      console.error(error);
-      return "-";
-    }
-  };
+  const { data: jobPosting } = useJobPostingQuery(applicationId)
 
   useEffect(() => {
     const fetchApplicationData = async () => {
@@ -153,26 +142,35 @@ export default function ApplicationManagementPage() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Company Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">지원서 관리</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">{jobPosting?.companyName}</h1>
               <div className="flex flex-wrap gap-2 mb-3">
-                {applications.length > 0 && (
-                  <Badge variant="outline" className="text-blue-700 border-blue-200">
-                    {applications[0].position.name}
+                {jobPosting?.positions.map((position) => (
+                  <Badge key={position.id} variant="outline" className="text-blue-700 border-blue-200">
+                    {position.name}
                   </Badge>
-                )}
+                ))}
+              </div>
+              <div className="flex items-center gap-6 text-sm text-gray-600">
+                <span>{jobPosting?.companyLocation && getLocationText(jobPosting.companyLocation)}</span>
+                <span>
+                  {jobPosting?.employmentType === 'FULL_TIME' && '정규직'}
+                  {jobPosting?.employmentType === 'CONTRACT' && '계약직'}
+                  {jobPosting?.employmentType === 'INTERN' && '인턴'}
+                  {jobPosting?.employmentType === 'MILITARY_EXCEPTION' && '병역특례'}
+                </span>
+                <span>마감일: {formatDate(jobPosting?.endAt)}</span>
               </div>
             </div>
 
             <div className="text-right">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5 text-gray-400" />
-                <span className="text-2xl font-bold text-gray-900">{applicationData.count}</span>
+                <span className="text-2xl font-bold text-gray-900">{jobPosting?.applicationCount ?? 0}</span>
                 <span className="text-gray-600">명 지원</span>
               </div>
             </div>
@@ -201,7 +199,7 @@ export default function ApplicationManagementPage() {
               <Button
                 onClick={handleBulkDownload}
                 disabled={applications.length === 0}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
                 전체 다운로드
@@ -292,13 +290,13 @@ export default function ApplicationManagementPage() {
                         <Button
                           size="sm"
                           onClick={() => setSelectedApplicant(application)}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
                           disabled={application.status === 'ANNOUNCED'}
                         >
                           결과 통보
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-md bg-white">
                         <DialogHeader>
                           <DialogTitle>지원 결과 통보</DialogTitle>
                           <DialogDescription>{application.applicant.name} 학생의 지원 결과를 선택해주세요.</DialogDescription>
@@ -338,7 +336,7 @@ export default function ApplicationManagementPage() {
                           <Button
                             onClick={handleResultSubmit}
                             disabled={!result}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             결과 통보
                           </Button>

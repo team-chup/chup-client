@@ -81,6 +81,7 @@ export interface JobFormData {
   startDate: Date | null;
   endDate: Date | null;
   attachments: AttachmentWithFile[];
+  positions?: Position[];
 }
 
 export interface AttachmentWithFile {
@@ -99,9 +100,10 @@ export interface JobFormProps {
   submitButtonText: string;
   onSubmit: (formData: JobFormData, selectedPositionIds: number[], processedFiles: AttachmentFile[]) => Promise<void>;
   isSubmitting: boolean;
+  showAttachments?: boolean;
 }
 
-export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting }: JobFormProps) {
+export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false }: JobFormProps) {
   const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
@@ -126,23 +128,31 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   useEffect(() => {
     if (initialData) {
       setJobData(initialData);
+      
+      // 초기 데이터에 positions가 있으면 선택된 포지션으로 설정
+      if (initialData.positions && initialData.positions.length > 0) {
+        const positionIds = initialData.positions.map(pos => pos.id);
+        setSelectedPositions(positionIds);
+      }
     }
   }, [initialData]);
 
-  // 포지션 데이터 로드
-  useEffect(() => {
-    const loadPositions = async () => {
-      try {
-        const positionsData = await getPositions();
-        setPositions(positionsData);
-      } catch (error) {
-        console.error(error);
-        toast.error("포지션 데이터를 불러오는데 실패했습니다.");
-      } finally {
-        setIsPositionsLoading(false);
-      }
-    };
+  const loadPositions = async () => {
+    try {
+      setIsPositionsLoading(true);
+      const positionsData = await getPositions();
+      setPositions(positionsData);
+      return positionsData;
+    } catch (error) {
+      console.error(error);
+      toast.error("포지션 데이터를 불러오는데 실패했습니다.");
+      return [];
+    } finally {
+      setIsPositionsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadPositions();
   }, []);
 
@@ -167,13 +177,25 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     
     try {
       setIsAddingPosition(true);
-      const newPosition = await createPosition(customPositionName);
       
-      setPositions(prev => [...prev, newPosition]);
-      setSelectedPositions(prev => [...prev, newPosition.id]);
+      // 새 포지션 생성 API 호출
+      await createPosition(customPositionName);
+      
+      // 생성 후 전체 포지션 목록을 다시 불러옴
+      const updatedPositions = await loadPositions();
+      
+      // 방금 생성한 포지션 찾기
+      const newPosition = updatedPositions.find(p => p.name === customPositionName);
+      
+      // 새 포지션이 정상적으로 생성되었다면 선택 상태로 변경
+      if (newPosition) {
+        setSelectedPositions(prev => [...prev, newPosition.id]);
+        toast.success(`'${newPosition.name}' 포지션이 추가되었습니다.`);
+      } else {
+        toast.info("포지션이 추가되었습니다. 목록이 갱신되었습니다.");
+      }
+      
       setCustomPositionName("");
-      
-      toast.success(`'${newPosition.name}' 포지션이 추가되었습니다.`);
     } catch (error) {
       console.error(error);
       toast.error("포지션 추가에 실패했습니다.");
@@ -331,7 +353,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   };
 
   const renderBasicInfoSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
@@ -364,7 +386,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderPositionSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Briefcase className="h-5 w-5" />
@@ -382,11 +404,12 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
               <Label>포지션 선택</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                 {positions.map((position) => (
-                  <div key={position.id} className="flex items-center space-x-2">
+                  <div key={`position-${position.id}`} className="flex items-center space-x-2">
                     <Checkbox
                       id={`position-${position.id}`}
                       checked={selectedPositions.includes(position.id)}
                       onCheckedChange={(checked) => togglePosition(position.id, !!checked)}
+                      className="border-zinc-900 data-[state=checked]:bg-zinc-900 data-[state=checked]:text-white"
                     />
                     <Label htmlFor={`position-${position.id}`} className="text-sm">
                       {position.name}
@@ -425,7 +448,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderWorkConditionsSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
@@ -486,7 +509,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
   );
 
   const renderApplicationPeriodSection = () => (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
@@ -515,83 +538,52 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     </Card>
   );
 
-  const renderAttachmentsSection = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          첨부 파일
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label htmlFor="attachments">파일 업로드</Label>
-          <div
-            className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
-              isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-            } border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer`}
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-          >
-            <div className="space-y-1 text-center">
-              <Upload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="flex text-sm text-gray-600 items-center justify-center">
-                <span className="flex items-center gap-1">
-                  <FileUp className="h-4 w-4" />
-                  파일 선택
-                </span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  multiple
-                  className="sr-only"
-                  onChange={handleFileChange}
-                />
-                <p className="pl-1">또는 드래그 앤 드롭</p>
-              </div>
-              <p className="text-xs text-gray-500">
-                {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
-              </p>
-            </div>
-          </div>
-        </div>
+  const renderAttachmentsSection = () => {
+    if (!showAttachments || !jobData.attachments.length) {
+      return null;
+    }
 
-        {jobData.attachments.length > 0 && (
-          <div className="space-y-3 mt-4">
-            <Label>업로드된 파일</Label>
+    return (
+      <Card className="bg-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            첨부 파일
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
             {jobData.attachments.map((attachment, index) => (
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {isUploading ? (
-                        <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
-                      ) : (
-                        <FileText className="h-5 w-5 text-gray-400" />
-                      )}
+                      <FileText className="h-5 w-5 text-gray-400" />
                       <div>
                         <p className="font-medium">{attachment.name || attachment.file.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {attachment.url ? "이미 업로드된 파일" : formatFileSize(attachment.file.size)}
-                        </p>
+                        {attachment.url && (
+                          <p className="text-sm text-gray-500">
+                            <a 
+                              href={attachment.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              다운로드
+                            </a>
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                      <X className="h-4 w-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderActionButtons = () => (
     <div className="flex justify-end gap-4">
