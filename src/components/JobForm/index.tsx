@@ -136,20 +136,22 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     }
   }, [initialData]);
 
-  // 포지션 데이터 로드
-  useEffect(() => {
-    const loadPositions = async () => {
-      try {
-        const positionsData = await getPositions();
-        setPositions(positionsData);
-      } catch (error) {
-        console.error(error);
-        toast.error("포지션 데이터를 불러오는데 실패했습니다.");
-      } finally {
-        setIsPositionsLoading(false);
-      }
-    };
+  const loadPositions = async () => {
+    try {
+      setIsPositionsLoading(true);
+      const positionsData = await getPositions();
+      setPositions(positionsData);
+      return positionsData;
+    } catch (error) {
+      console.error(error);
+      toast.error("포지션 데이터를 불러오는데 실패했습니다.");
+      return [];
+    } finally {
+      setIsPositionsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadPositions();
   }, []);
 
@@ -174,13 +176,25 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     
     try {
       setIsAddingPosition(true);
-      const newPosition = await createPosition(customPositionName);
       
-      setPositions(prev => [...prev, newPosition]);
-      setSelectedPositions(prev => [...prev, newPosition.id]);
+      // 새 포지션 생성 API 호출
+      await createPosition(customPositionName);
+      
+      // 생성 후 전체 포지션 목록을 다시 불러옴
+      const updatedPositions = await loadPositions();
+      
+      // 방금 생성한 포지션 찾기
+      const newPosition = updatedPositions.find(p => p.name === customPositionName);
+      
+      // 새 포지션이 정상적으로 생성되었다면 선택 상태로 변경
+      if (newPosition) {
+        setSelectedPositions(prev => [...prev, newPosition.id]);
+        toast.success(`'${newPosition.name}' 포지션이 추가되었습니다.`);
+      } else {
+        toast.info("포지션이 추가되었습니다. 목록이 갱신되었습니다.");
+      }
+      
       setCustomPositionName("");
-      
-      toast.success(`'${newPosition.name}' 포지션이 추가되었습니다.`);
     } catch (error) {
       console.error(error);
       toast.error("포지션 추가에 실패했습니다.");
@@ -389,7 +403,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
               <Label>포지션 선택</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                 {positions.map((position) => (
-                  <div key={position.id} className="flex items-center space-x-2">
+                  <div key={`position-${position.id}`} className="flex items-center space-x-2">
                     <Checkbox
                       id={`position-${position.id}`}
                       checked={selectedPositions.includes(position.id)}

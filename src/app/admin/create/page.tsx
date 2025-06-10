@@ -10,7 +10,7 @@ import {
 } from "@/types/posting"
 import JobForm, { JobFormData, EMPLOYMENT_TYPE_MAPPING, LOCATION_MAPPING } from "@/components/JobForm"
 
-export default function CreateJobPage() {
+export default function CreateJobPostingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,7 +27,7 @@ export default function CreateJobPage() {
     return adjustedDate.toISOString();
   };
 
-  const handleSubmit = async (
+  const handleCreateJobPosting = async (
     formData: JobFormData, 
     selectedPositions: number[], 
     uploadedFiles: AttachmentFile[]
@@ -78,7 +78,7 @@ export default function CreateJobPage() {
 
         <JobForm
           submitButtonText="공고 등록"
-          onSubmit={handleSubmit}
+          onSubmit={handleCreateJobPosting}
           isSubmitting={isSubmitting}
         />
       </main>
