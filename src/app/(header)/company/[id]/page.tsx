@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { useQuery } from "@tanstack/react-query"
 import { getJobPostingDetail } from "@/api/posting"
 import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jobUtils"
+import { formatDate } from "@/utils/dateUtils"
 import Link from "next/link"
 
 export default function CompanyDetailPage() {
@@ -46,7 +47,7 @@ export default function CompanyDetailPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>마감일: {posting.endAt.split('T')[0]}</span>
+                    <span>마감일: {formatDate(posting.endAt)}</span>
                   </div>
                 </div>
                 <Badge className={getTypeColor(posting.employmentType)}>{getEmploymentTypeText(posting.employmentType)}</Badge>
