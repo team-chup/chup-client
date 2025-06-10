@@ -22,6 +22,7 @@ import { DetailedApplication, DetailedApplicationsResponse, ResultStatus } from 
 import { useParams } from "next/navigation"
 import { format } from "date-fns"
 import { getApplicationById, announceResult } from "@/api/myApplications"
+import { downloadApplications } from "@/api/posting"
 
 export default function ApplicationManagementPage() {
   const params = useParams()
@@ -106,7 +107,7 @@ export default function ApplicationManagementPage() {
   }
 
   const handleBulkDownload = () => {
-    console.log(selectedApplicants)
+    downloadApplications(applicationId, selectedApplicants)
   }
 
   const getStatusText = (status: string, resultStatus?: ResultStatus) => {
