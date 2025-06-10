@@ -100,9 +100,10 @@ export interface JobFormProps {
   submitButtonText: string;
   onSubmit: (formData: JobFormData, selectedPositionIds: number[], processedFiles: AttachmentFile[]) => Promise<void>;
   isSubmitting: boolean;
+  showAttachments?: boolean;
 }
 
-export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting }: JobFormProps) {
+export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false }: JobFormProps) {
   const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
@@ -536,83 +537,52 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     </Card>
   );
 
-  const renderAttachmentsSection = () => (
-    <Card className="bg-white">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          첨부 파일
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label htmlFor="attachments">파일 업로드</Label>
-          <div
-            className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
-              isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-            } border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer`}
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-          >
-            <div className="space-y-1 text-center">
-              <Upload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="flex text-sm text-gray-600 items-center justify-center">
-                <span className="flex items-center gap-1">
-                  <FileUp className="h-4 w-4" />
-                  파일 선택
-                </span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  multiple
-                  className="sr-only"
-                  onChange={handleFileChange}
-                />
-                <p className="pl-1">또는 드래그 앤 드롭</p>
-              </div>
-              <p className="text-xs text-gray-500">
-                {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
-              </p>
-            </div>
-          </div>
-        </div>
+  const renderAttachmentsSection = () => {
+    if (!showAttachments || !jobData.attachments.length) {
+      return null;
+    }
 
-        {jobData.attachments.length > 0 && (
-          <div className="space-y-3 mt-4">
-            <Label>업로드된 파일</Label>
+    return (
+      <Card className="bg-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            첨부 파일
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
             {jobData.attachments.map((attachment, index) => (
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {isUploading ? (
-                        <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
-                      ) : (
-                        <FileText className="h-5 w-5 text-gray-400" />
-                      )}
+                      <FileText className="h-5 w-5 text-gray-400" />
                       <div>
                         <p className="font-medium">{attachment.name || attachment.file.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {attachment.url ? "이미 업로드된 파일" : formatFileSize(attachment.file.size)}
-                        </p>
+                        {attachment.url && (
+                          <p className="text-sm text-gray-500">
+                            <a 
+                              href={attachment.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              다운로드
+                            </a>
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                      <X className="h-4 w-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderActionButtons = () => (
     <div className="flex justify-end gap-4">

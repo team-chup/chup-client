@@ -44,7 +44,7 @@ export default function EditJobPage({ params }: Props) {
         const positionIds = jobPostingDetail.positions?.map(position => position.id) || [];
         setInitialPositions(positionIds);
         
-        const attachments: AttachmentWithFile[] = (jobPostingDetail.files || []).map(file => ({
+        const attachmentsWithFile: AttachmentWithFile[] = (jobPostingDetail.files || []).map(file => ({
           file: new File([], file.name), 
           url: file.url,
           name: file.name
@@ -58,7 +58,7 @@ export default function EditJobPage({ params }: Props) {
           employmentType: employmentTypeKey,
           startDate,
           endDate,
-          attachments,
+          attachments: attachmentsWithFile,
           positions: jobPostingDetail.positions || []
         });
 
@@ -75,16 +75,13 @@ export default function EditJobPage({ params }: Props) {
     loadJobPostingDetail();
   }, [postingId, router]);
 
-  // 시간대 문제를 해결하기 위한 날짜 변환 함수
   const formatDateForAPI = (date: Date | null): string => {
     if (!date) return "";
     
-    // 날짜의 시간을 정오(12:00)로 설정하여 시간대 변환 시 날짜가 바뀌는 문제 방지
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
     
-    // 한국 시간 기준 정오로 설정
     const adjustedDate = new Date(year, month, day, 15, 0, 0);
     return adjustedDate.toISOString();
   };
@@ -130,6 +127,7 @@ export default function EditJobPage({ params }: Props) {
     }
   };
 
+
   if (isJobPostingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -149,12 +147,15 @@ export default function EditJobPage({ params }: Props) {
           <p className="text-gray-600">채용공고 정보를 수정하여 GSM 학생들에게 정확한 정보를 제공하세요</p>
         </div>
 
+        <div className="grid gap-6">
         <JobForm
           initialData={initialFormData}
           submitButtonText="공고 수정"
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          showAttachments={true}
         />
+        </div>
       </main>
     </div>
   )
