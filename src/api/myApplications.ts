@@ -12,6 +12,6 @@ export const getApplicationById = async (id: number) => {
 };
 
 export const announceResult = async (id: number, resultData: ResultRequest) => {
-  const { data } = await instance.post(`/announce/${id}`, resultData);
+  const { data } = await instance.post(`/application/announce/${id}`, resultData);
   return data;
 };

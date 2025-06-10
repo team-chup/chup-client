@@ -31,7 +31,7 @@ export interface JobPosting {
   employmentType: EmploymentType
   positions: Position[]
   applicationCount: number
-  createAt: string
+  createdAt: string
   startAt: string
   endAt: string
 }
@@ -56,7 +56,7 @@ export interface JobPostingDetail {
   applicationCount: number
   startAt: string
   endAt: string
-  createAt: string
+  createdAt: string
   files: AttachmentFile[]
   applied: boolean
 }

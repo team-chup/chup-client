@@ -4,15 +4,15 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Calendar, Download, FileText, MapPin, Users } from "lucide-react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { useQuery } from "@tanstack/react-query"
 import { getJobPostingDetail } from "@/api/posting"
 import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jobUtils"
+import Link from "next/link"
 
 export default function CompanyDetailPage() {
   const params = useParams()
-  const router = useRouter()
 
   const { data: posting, isLoading } = useQuery({
     queryKey: ["posting", params.id],
@@ -55,10 +55,12 @@ export default function CompanyDetailPage() {
             <Button
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
-              onClick={() => router.push(`/apply/${params.id}`)}
+              asChild
               disabled={posting.applied}
             >
-              {posting.applied ? "지원완료" : "지원하기"}
+              <Link href={`/apply/${params.id}`}>
+                {posting.applied ? "지원완료" : "지원하기"}
+              </Link>
             </Button>
           </div>
         </div>
