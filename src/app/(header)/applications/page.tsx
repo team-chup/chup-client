@@ -69,12 +69,27 @@ export default function ApplicationsPage() {
     JEJU: "제주",
   }
 
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "-";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "-";
+      }
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error( error);
+      return "-";
+    }
+  };
+
   const formattedApplications = applications.map(app => ({
     id: app.id,
     company: app.companyName,
     logo: app.companyName.substring(0, 2),
     position: app.position.name,
-    appliedDate: new Date(app.createAt).toISOString().split('T')[0],
+    appliedDate: formatDate(app.createAt),
     status: app.result?.status === "FAILED" ? "불합격" : statusMapping[app.status],
     location: `${locationMapping[app.companyLocation] || "기타"} ${app.companyLocation === "SEOUL" ? "서울" : ""}`,
     type: employmentTypeMapping[app.employmentType],
@@ -86,10 +101,19 @@ export default function ApplicationsPage() {
   )
 
   const sortedApplications = [...filteredApplications].sort((a, b) => {
+    // 날짜 정렬 함수도 안전하게 처리
+    const dateA = a.appliedDate === "날짜 없음" || a.appliedDate === "유효하지 않은 날짜" || a.appliedDate === "날짜 오류" 
+      ? new Date(0) 
+      : new Date(a.appliedDate);
+    
+    const dateB = b.appliedDate === "날짜 없음" || b.appliedDate === "유효하지 않은 날짜" || b.appliedDate === "날짜 오류" 
+      ? new Date(0) 
+      : new Date(b.appliedDate);
+    
     if (sortBy === "latest") {
-      return new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()
+      return dateB.getTime() - dateA.getTime();
     }
-    return new Date(a.appliedDate).getTime() - new Date(b.appliedDate).getTime()
+    return dateA.getTime() - dateB.getTime();
   })
 
   const getStatusCounts = () => {

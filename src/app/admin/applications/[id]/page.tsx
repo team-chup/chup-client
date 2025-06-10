@@ -36,6 +36,21 @@ export default function ApplicationManagementPage() {
   const [result, setResult] = useState<string>("")
   const [rejectionReason, setRejectionReason] = useState<string>("")
 
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "-";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "-";
+      }
+      return format(date, 'yyyy-MM-dd');
+    } catch (error) {
+      console.error(error);
+      return "-";
+    }
+  };
+
   useEffect(() => {
     const fetchApplicationData = async () => {
       setIsLoading(true)
@@ -232,7 +247,7 @@ export default function ApplicationManagementPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>지원일: {format(new Date(application.createAt), 'yyyy-MM-dd')}</span>
+                        <span>지원일: {formatDate(application.createAt)}</span>
                       </div>
                     </div>
 
