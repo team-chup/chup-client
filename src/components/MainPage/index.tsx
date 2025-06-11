@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback, memo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import JobSearchFilter from "@/components/JobSearchFilter"
 import JobCard from "@/components/JobCard"
@@ -11,19 +11,57 @@ import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 interface MainPageProps {
   isAdmin: boolean;
 }
 
+const SkeletonCard = memo(({ index }: { index: number }) => (
+  <Card key={index} className="hover:shadow-md min-h-[140px] transition-shadow bg-white">
+    <CardContent className="p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-4 flex-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-3">
+              <Skeleton className="h-6 w-48 bg-gray-200" />
+              <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-5">
+              <Skeleton className="h-5 w-24 rounded-full bg-gray-200" />
+              <Skeleton className="h-5 w-20 rounded-full bg-gray-200" />
+            </div>
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-4 w-20 bg-gray-200" />
+              <Skeleton className="h-4 w-16 bg-gray-200" />
+              <Skeleton className="h-4 w-14 bg-gray-200" />
+            </div>
+          </div>
+        </div>
+        <Link href="#">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-[#fafafa]" disabled>
+            상세보기
+          </Button>
+        </Link>
+      </div>
+    </CardContent>
+  </Card>
+));
+
+const SkeletonCardList = memo(() => (
+  <>
+    {[0, 1, 2].map((index) => (
+      <SkeletonCard key={index} index={index} />
+    ))}
+  </>
+));
+
 export default function MainPage({ isAdmin = false }: MainPageProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedPosition, setSelectedPosition] = useState("")
   const [selectedLocation, setSelectedLocation] = useState("")
   const [selectedType, setSelectedType] = useState("")
-  const [randomCount, setRandomCount] = useState(30)
+  const [randomCount, setRandomCount] = useState(0)
   const [isClient, setIsClient] = useState(false)
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
@@ -37,45 +75,95 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
     refetchOnWindowFocus: false,
   })
 
-  const filteredJobListings = jobListings?.postings.filter((job) => {
-    const matchesSearch = searchQuery
-      ? job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.positions.some((pos) => pos.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      : true
+  const filteredJobListings = useMemo(() => {
+    if (!jobListings?.postings) return [];
+    
+    return jobListings.postings.filter((job) => {
+      const matchesSearch = searchQuery
+        ? job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          job.positions.some((pos) => pos.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : true
 
-    const matchesPosition = selectedPosition
-      ? job.positions.some((pos) => pos.name === selectedPosition)
-      : true
+      const matchesPosition = selectedPosition
+        ? job.positions.some((pos) => pos.name === selectedPosition)
+        : true
 
-    const matchesLocation = selectedLocation
-      ? job.companyLocation === selectedLocation
-      : true
+      const matchesLocation = selectedLocation
+        ? job.companyLocation === selectedLocation
+        : true
 
-    const matchesType = selectedType
-      ? job.employmentType === selectedType
-      : true
+      const matchesType = selectedType
+        ? job.employmentType === selectedType
+        : true
 
-    return matchesSearch && matchesPosition && matchesLocation && matchesType
-  })
+      return matchesSearch && matchesPosition && matchesLocation && matchesType
+    });
+  }, [jobListings?.postings, searchQuery, selectedPosition, selectedLocation, selectedType]);
 
-  const isLoading = isProfileLoading || isJobListingsLoading || !jobListings || !profile;
-  const isEmpty = !isLoading && filteredJobListings?.length === 0;
+  const isLoading = useMemo(() => 
+    isProfileLoading || isJobListingsLoading || !jobListings || !profile,
+    [isProfileLoading, isJobListingsLoading, jobListings, profile]
+  );
+
+  const isEmpty = useMemo(() => 
+    !isLoading && filteredJobListings.length === 0,
+    [isLoading, filteredJobListings.length]
+  );
+
+  const handleReset = useCallback(() => {
+    setSearchQuery("")
+    setSelectedPosition("")
+    setSelectedLocation("")
+    setSelectedType("")
+  }, []);
   
   useEffect(() => {
     setIsClient(true)
-  }, [])
-    
+  }, []);
+  
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || !isLoading) return;
     
-    if (isLoading) {
-      const interval = setInterval(() => {
+    let animationFrameId: number;
+    let lastUpdateTime = 0;
+    const updateInterval = 50; 
+    
+    const updateRandomNumber = (timestamp: number) => {
+      if (timestamp - lastUpdateTime > updateInterval) {
         setRandomCount(Math.floor(Math.random() * 90));
-      }, 20); 
-        
-      return () => clearInterval(interval);
-    }
+        lastUpdateTime = timestamp;
+      }
+      animationFrameId = requestAnimationFrame(updateRandomNumber);
+    };
+    
+    animationFrameId = requestAnimationFrame(updateRandomNumber);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
   }, [isLoading, isClient]);
+
+  const ProfileName = useMemo(() => {
+    if (isLoading || !profile) {
+      return <Skeleton className="inline-block h-7 w-[78px] bg-gray-200 align-middle" />;
+    }
+    const name = profile && profile.name ? profile.name : "";
+    return <span className="font-semibold">{name}</span>;
+  }, [isLoading, profile]);
+
+  const PostingCount = useMemo(() => {
+    if (isLoading) {
+      return (
+        <span
+          className="inline-block font-semibold text-gray-900"
+          style={{ display: 'inline-block', textAlign: 'center' }}
+        >
+          {isClient ? randomCount : 0}
+        </span>
+      );
+    }
+    return <span className="font-semibold">{jobListings?.count}</span>;
+  }, [isLoading, isClient, randomCount, jobListings?.count]);
 
   return (
     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50">
@@ -88,16 +176,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
               </h1>
               <p className="text-gray-600">
                 총{" "}
-                {isLoading ? (
-                  <span
-                    className="inline-block font-semibold text-gray-900"
-                    style={{ display: 'inline-block', textAlign: 'center' }}
-                  >
-                    {isClient ? randomCount : 0}
-                  </span>
-                ) : (
-                  <span className="font-semibold">{jobListings.count}</span>
-                )}
+                {PostingCount}
                 개의 채용공고를 관리하고 있습니다.
               </p>
             </>
@@ -105,25 +184,12 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
             <>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 안녕하세요,{" "}
-                {isLoading ? (
-                  <Skeleton className="inline-block h-7 w-[78px] bg-gray-200 align-middle" />
-                ) : (
-                  <span className="font-semibold">{profile.name}</span>
-                )}
+                {ProfileName}
                 님! 👋
               </h1>
               <p className="text-gray-600">
                 새로운 채용 기회를 찾아보세요. 총{" "}
-                {isLoading ? (
-                  <span
-                    className="inline-block font-semibold text-gray-900"
-                    style={{ display: 'inline-block', textAlign: 'center' }}
-                  >
-                    {isClient ? randomCount : 0}
-                  </span>
-                ) : (
-                  <span className="font-semibold">{jobListings.count}</span>
-                )}
+                {PostingCount}
                 개의 공고가 있습니다.
               </p>
             </>
@@ -139,48 +205,14 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
           onPositionChange={setSelectedPosition}
           onLocationChange={setSelectedLocation}
           onTypeChange={setSelectedType}
-          onReset={() => {
-            setSearchQuery("")
-            setSelectedPosition("")
-            setSelectedLocation("")
-            setSelectedType("")
-          }}
+          onReset={handleReset}
         />
 
         <div className="grid gap-6">
           {isLoading ? (
-            [1, 2, 3].map((index) => (
-              <Card key={index} className="hover:shadow-md min-h-[140px] transition-shadow bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-4 mb-3">
-                          <Skeleton className="h-6 w-48 bg-gray-200" />
-                          <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-5">
-                          <Skeleton className="h-5 w-24 rounded-full bg-gray-200" />
-                          <Skeleton className="h-5 w-20 rounded-full bg-gray-200" />
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <Skeleton className="h-4 w-20 bg-gray-200" />
-                          <Skeleton className="h-4 w-16 bg-gray-200" />
-                          <Skeleton className="h-4 w-14 bg-gray-200" />
-                        </div>
-                      </div>
-                    </div>
-                    <Link href="#">
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-[#fafafa]" disabled>
-                        상세보기
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+            <SkeletonCardList />
           ) : (
-            filteredJobListings?.map((job) => (
+            filteredJobListings.map((job) => (
               <JobCard
                 key={job.id}
                 id={job.id}
@@ -190,7 +222,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
                 positions={job.positions}
                 applicationCount={job.applicationCount}
                 endAt={job.endAt}
-                authority={profile.authority}
+                authority={profile?.authority}
               />
             ))
           )}
