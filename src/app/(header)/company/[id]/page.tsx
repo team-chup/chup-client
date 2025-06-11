@@ -11,6 +11,7 @@ import { getJobPostingDetail } from "@/api/posting"
 import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jobUtils"
 import { formatDate } from "@/utils/dateUtils"
 import Link from "next/link"
+import { forceDownload } from "@/utils/downloadUtils"
 
 export default function CompanyDetailPage() {
   const params = useParams()
@@ -132,11 +133,16 @@ export default function CompanyDetailPage() {
                         <p className="font-medium text-gray-900">{file.name}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={file.url} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4 mr-2" />
-                        다운로드
-                      </a>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        forceDownload(file.url, file.name);
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      다운로드
                     </Button>
                   </div>
                 ))}
