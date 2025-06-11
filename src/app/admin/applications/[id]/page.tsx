@@ -131,18 +131,8 @@ export default function ApplicationManagementPage() {
       }
 
       try {
-        const response = await downloadApplications(applicationId, selectedApplicants);
-        
-        const blob = new Blob([response], { type: 'application/zip' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast.success('이력서 압축 파일 다운로드가 완료되었습니다.');
+        await downloadApplications(applicationId, selectedApplicants);
+        toast.success('이력서 다운로드가 완료되었습니다.');
       } catch (error) {
         console.error('이력서 다운로드 실패:', error);
         toast.error('이력서 다운로드에 실패했습니다.');

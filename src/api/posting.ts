@@ -50,6 +50,28 @@ export const createPosition = async (name: string): Promise<Position> => {
 }
 
 export const downloadApplications = async (someId: number | string, ids: number[]) => {
-  const { data } = await instance.get(`/application/download/${someId}?ids=${ids.join(',')}`)
-  return data
+  const response = await instance.get(`/application/download/${someId}?ids=${ids.join(',')}`, {
+    responseType: 'blob',
+  });
+
+  const contentDisposition = response.headers['content-disposition'];
+  let filename = '이력서_모음.zip';
+  
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?([^"]*)"?/);
+    if (filenameMatch && filenameMatch[1]) {
+      filename = decodeURIComponent(filenameMatch[1]);
+    }
+  }
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(link);
+  
+  return response.data;
 }
