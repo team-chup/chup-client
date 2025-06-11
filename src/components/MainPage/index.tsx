@@ -1,17 +1,15 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react"
-import { useQuery } from "@tanstack/react-query"
 import JobSearchFilter from "@/components/JobSearchFilter"
 import JobCard from "@/components/JobCard"
 import EmptyState from "@/components/EmptyState"
-import { getJobListings } from "@/api/posting"
-import { JobListingsResponse } from "@/types/posting"
 import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
+import { useJobListingsQuery } from "@/hooks/useJobListingsQuery"
 
 interface MainPageProps {
   isAdmin: boolean;
@@ -65,15 +63,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   const [isClient, setIsClient] = useState(false)
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
-
-  const { data: jobListings, isLoading: isJobListingsLoading } = useQuery<JobListingsResponse>({
-    queryKey: ["jobListings"],
-    queryFn: getJobListings,
-    staleTime: 1000 * 60 * 5, 
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  })
+  const { data: jobListings, isLoading: isJobListingsLoading } = useJobListingsQuery()
 
   const filteredJobListings = useMemo(() => {
     if (!jobListings?.postings) return [];
