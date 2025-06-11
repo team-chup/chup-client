@@ -285,7 +285,7 @@ export default function ApplicationManagementPage() {
                 )}
                 선택 이력서 다운로드
               </Button>
-              <Button
+              {/* <Button
                 onClick={handleAllDownload}
                 disabled={applications.length === 0 || isDownloading}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -296,7 +296,7 @@ export default function ApplicationManagementPage() {
                   <Download className="h-4 w-4 mr-2" />
                 )}
                 전체 다운로드
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
