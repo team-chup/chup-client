@@ -137,8 +137,6 @@ export default function ApplicationManagementPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const fileName = applicationData ? `이력서_${applicationData.applications.length}건.zip` : '이력서.zip';
-        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
