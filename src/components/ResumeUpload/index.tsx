@@ -362,7 +362,7 @@ export default function ResumeUpload({
                 </span>
                 <Button
                   onClick={handleSave}
-                  className="bg-blue-100 hover:bg-blue-200 border border-blue-300"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={isSaving}
                 >
                   {isSaving ? (
