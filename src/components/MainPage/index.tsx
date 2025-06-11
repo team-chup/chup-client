@@ -59,8 +59,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   const [selectedPosition, setSelectedPosition] = useState("")
   const [selectedLocation, setSelectedLocation] = useState("")
   const [selectedType, setSelectedType] = useState("")
-  const [randomCount, setRandomCount] = useState(0)
-  const [isClient, setIsClient] = useState(false)
+
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
   const { data: jobListings, isLoading: isJobListingsLoading } = useJobListingsQuery()
@@ -91,8 +90,8 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   }, [jobListings?.postings, searchQuery, selectedPosition, selectedLocation, selectedType]);
 
   const isLoading = useMemo(() => 
-    isProfileLoading || isJobListingsLoading || !jobListings || !profile,
-    [isProfileLoading, isJobListingsLoading, jobListings, profile]
+    isProfileLoading || isJobListingsLoading,
+    [isProfileLoading, isJobListingsLoading]
   );
 
   const isEmpty = useMemo(() => 
@@ -107,53 +106,16 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
     setSelectedType("")
   }, []);
   
-  useEffect(() => {
-    setIsClient(true)
-  }, []);
-  
-  useEffect(() => {
-    if (!isClient || !isLoading) return;
-    
-    let animationFrameId: number;
-    let lastUpdateTime = 0;
-    const updateInterval = 50; 
-    
-    const updateRandomNumber = (timestamp: number) => {
-      if (timestamp - lastUpdateTime > updateInterval) {
-        setRandomCount(Math.floor(Math.random() * 90));
-        lastUpdateTime = timestamp;
-      }
-      animationFrameId = requestAnimationFrame(updateRandomNumber);
-    };
-    
-    animationFrameId = requestAnimationFrame(updateRandomNumber);
-    
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isLoading, isClient]);
-
   const ProfileName = useMemo(() => {
     if (isLoading || !profile) {
       return <Skeleton className="inline-block h-7 w-[78px] bg-gray-200 align-middle" />;
     }
-    const name = profile && profile.name ? profile.name : "";
-    return <span className="font-semibold">{name}</span>;
+    return <span className="font-semibold">{profile.name || ""}</span>;
   }, [isLoading, profile]);
 
   const PostingCount = useMemo(() => {
-    if (isLoading) {
-      return (
-        <span
-          className="inline-block font-semibold text-gray-900"
-          style={{ display: 'inline-block', textAlign: 'center' }}
-        >
-          {isClient ? randomCount : 0}
-        </span>
-      );
-    }
-    return <span className="font-semibold">{jobListings?.count}</span>;
-  }, [isLoading, isClient, randomCount, jobListings?.count]);
+    return <span className="font-semibold">{isLoading ? 0 : jobListings?.count || 0}</span>;
+  }, [isLoading, jobListings?.count]);
 
   return (
     <div className="h-[calc(100vh-(4rem+1px))] bg-gray-50">

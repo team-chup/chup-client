@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { RotateCcw, Search } from "lucide-react"
 import { EMPLOYMENT_TYPES, LOCATIONS, POSITIONS } from "@/constants/jobData"
+import { memo } from "react"
 
 interface JobSearchFilterProps {
   searchQuery: string
@@ -16,7 +17,7 @@ interface JobSearchFilterProps {
   onReset: () => void
 }
 
-export default function JobSearchFilter({
+function JobSearchFilter({
   searchQuery,
   selectedPosition,
   selectedLocation,
@@ -95,3 +96,5 @@ export default function JobSearchFilter({
     </div>
   )
 }
+
+export default memo(JobSearchFilter);

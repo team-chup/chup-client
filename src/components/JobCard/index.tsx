@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, MapPin, Users, Eye, Settings } from "lucide-react"
 import { getTypeColor, getEmploymentTypeText, getLocationText, getDaysLeft } from "@/utils/jobUtils"
 import Link from "next/link"
+import { memo } from "react"
 
 interface Position {
   id: number
@@ -21,7 +22,7 @@ interface JobCardProps {
   authority?: string
 }
 
-export default function JobCard({
+function JobCard({
   id,
   companyName,
   companyLocation,
@@ -102,3 +103,5 @@ export default function JobCard({
     </Card>
   )
 }
+
+export default memo(JobCard);
