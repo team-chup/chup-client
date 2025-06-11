@@ -24,6 +24,8 @@ import { getApplicationById, announceResult } from "@/api/myApplications"
 import { useJobPostingQuery } from "@/hooks/useJobPostingQuery"
 import { getLocationText } from "@/utils/jobUtils"
 import { formatDate } from "@/utils/dateUtils"
+import { forceDownload, downloadLinkAsTxt, wait } from "@/utils/downloadUtils"
+import { toast } from "sonner"
 
 export default function ApplicationManagementPage() {
   const params = useParams()
@@ -37,6 +39,7 @@ export default function ApplicationManagementPage() {
   const [selectedApplicant, setSelectedApplicant] = useState<DetailedApplication | null>(null)
   const [result, setResult] = useState<string>("")
   const [rejectionReason, setRejectionReason] = useState<string>("")
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const { data: jobPosting } = useJobPostingQuery(applicationId)
 
@@ -81,7 +84,6 @@ export default function ApplicationManagementPage() {
         failedReason: result === 'fail' ? rejectionReason : undefined,
       })
 
-      // 데이터 갱신
       const updatedData = await getApplicationById(Number(applicationId))
       setApplicationData(updatedData)
     } catch (err) {
@@ -94,9 +96,88 @@ export default function ApplicationManagementPage() {
     }
   }
 
-  const handleBulkDownload = () => {
-    console.log(selectedApplicants)
-  }
+  const handleSingleDownload = async (application: DetailedApplication) => {
+    const { resume, applicant } = application;
+    const name = `${applicant.name}(${applicant.studentNumber})`;
+    
+    try {
+      if (resume.type === 'LINK') {
+        downloadLinkAsTxt(resume.url, `${name}(${applicant.studentNumber})_이력서.txt`);
+        toast.success('링크가 텍스트 파일로 다운로드되었습니다.');
+      } else {
+        await forceDownload(resume.url, `${name}(${applicant.studentNumber})_이력서.pdf`);
+        toast.success('이력서 다운로드가 완료되었습니다.');
+      }
+    } catch (error) {
+      console.error('이력서 다운로드 실패:', error);
+      toast.error('이력서 다운로드에 실패했습니다. 새 탭에서 열려고 시도합니다.');
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    if (selectedApplicants.length === 0) return
+    
+    try {
+      setIsDownloading(true)
+
+      const selectedApplications = applicationData?.applications.filter(
+        app => selectedApplicants.includes(app.id)
+      );
+
+      if (!selectedApplications || selectedApplications.length === 0) {
+        toast.error('선택된 지원자 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      const linkTypeApplications = selectedApplications.filter(app => app.resume.type === 'LINK');
+      const fileTypeApplications = selectedApplications.filter(app => app.resume.type !== 'LINK');
+
+      let linkDownloadCount = 0;
+      for (const app of linkTypeApplications) {
+        const filename = `${app.applicant.name}(${app.applicant.studentNumber})_이력서.txt`;
+        downloadLinkAsTxt(app.resume.url, filename);
+        linkDownloadCount++;
+        await wait(100);
+      }
+
+      let pdfDownloadCount = 0;
+      try {
+        for (const app of fileTypeApplications) {
+          const filename = `${app.applicant.name}(${app.applicant.studentNumber})_이력서.pdf`;
+          await forceDownload(app.resume.url, filename);
+          pdfDownloadCount++;
+          await wait(300); 
+        }
+      } catch (error) {
+        toast.error('일부 이력서 다운로드에 실패했습니다.');
+        console.error('이력서 다운로드 실패:', error);
+      }
+      
+    } catch (err) {
+      console.error('이력서 다운로드 실패:', err);
+      toast.error('이력서 다운로드에 실패했습니다.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleAllDownload = async () => {
+    if (!applicationData || applicationData.applications.length === 0) return
+    
+    try {
+      setIsDownloading(true)
+
+      const allApplicationIds = applicationData.applications.map(app => app.id);
+      setSelectedApplicants(allApplicationIds);
+      
+      setTimeout(() => {
+        handleBulkDownload();
+      }, 0);
+    } catch (err) {
+      console.error('이력서 다운로드 실패:', err);
+      toast.error('이력서 다운로드에 실패했습니다.');
+    }
+  };
 
   const getStatusText = (status: string, resultStatus?: ResultStatus) => {
     switch (status) {
@@ -192,18 +273,30 @@ export default function ApplicationManagementPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleBulkDownload} disabled={selectedApplicants.length === 0}>
-                <Download className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                onClick={handleBulkDownload} 
+                disabled={selectedApplicants.length === 0 || isDownloading}
+              >
+                {isDownloading ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-blue-600 rounded-full border-t-transparent mr-2" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
                 선택 이력서 다운로드
               </Button>
-              <Button
-                onClick={handleBulkDownload}
-                disabled={applications.length === 0}
+              {/* <Button
+                onClick={handleAllDownload}
+                disabled={applications.length === 0 || isDownloading}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Download className="h-4 w-4 mr-2" />
+                {isDownloading ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent mr-2" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
                 전체 다운로드
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -263,11 +356,13 @@ export default function ApplicationManagementPage() {
                     )}
 
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={application.resume.url} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4 mr-2" />
-                          이력서 {application.resume.type === 'LINK' ? '링크' : '다운로드'}
-                        </a>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleSingleDownload(application)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        이력서 {application.resume.type === 'LINK' ? '링크' : ''} 다운로드
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <a href={`mailto:${application.applicant.email}`}>
