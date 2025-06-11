@@ -26,6 +26,7 @@ import { getLocationText } from "@/utils/jobUtils"
 import { formatDate } from "@/utils/dateUtils"
 import { forceDownload, downloadLinkAsTxt, wait } from "@/utils/downloadUtils"
 import { toast } from "sonner"
+import { downloadApplications } from "@/api/posting"
 
 export default function ApplicationManagementPage() {
   const params = useParams()
@@ -97,15 +98,15 @@ export default function ApplicationManagementPage() {
   }
 
   const handleSingleDownload = async (application: DetailedApplication) => {
-    const { resume, applicant } = application;
-    const name = `${applicant.name}(${applicant.studentNumber})`;
+    const { resume, applicant, position } = application;
+    const filename = `${applicant.name}_${applicant.studentNumber}_${position.name}_이력서`;
     
     try {
       if (resume.type === 'LINK') {
-        downloadLinkAsTxt(resume.url, `${name}(${applicant.studentNumber})_이력서.txt`);
+        downloadLinkAsTxt(resume.url, `${filename}.txt`);
         toast.success('링크가 텍스트 파일로 다운로드되었습니다.');
       } else {
-        await forceDownload(resume.url, `${name}(${applicant.studentNumber})_이력서.pdf`);
+        await forceDownload(resume.url, `${filename}.pdf`);
         toast.success('이력서 다운로드가 완료되었습니다.');
       }
     } catch (error) {
@@ -129,28 +130,42 @@ export default function ApplicationManagementPage() {
         return;
       }
 
-      const linkTypeApplications = selectedApplications.filter(app => app.resume.type === 'LINK');
-      const fileTypeApplications = selectedApplications.filter(app => app.resume.type !== 'LINK');
-
-      let linkDownloadCount = 0;
-      for (const app of linkTypeApplications) {
-        const filename = `${app.applicant.name}(${app.applicant.studentNumber})_이력서.txt`;
-        downloadLinkAsTxt(app.resume.url, filename);
-        linkDownloadCount++;
-        await wait(100);
-      }
-
-      let pdfDownloadCount = 0;
       try {
-        for (const app of fileTypeApplications) {
-          const filename = `${app.applicant.name}(${app.applicant.studentNumber})_이력서.pdf`;
-          await forceDownload(app.resume.url, filename);
-          pdfDownloadCount++;
-          await wait(300); 
-        }
+        const response = await downloadApplications(applicationId, selectedApplicants);
+        
+        const blob = new Blob([response], { type: 'application/zip' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const fileName = applicationData ? `이력서_${applicationData.applications.length}건.zip` : '이력서.zip';
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success('이력서 압축 파일 다운로드가 완료되었습니다.');
       } catch (error) {
-        toast.error('일부 이력서 다운로드에 실패했습니다.');
         console.error('이력서 다운로드 실패:', error);
+        toast.error('이력서 다운로드에 실패했습니다.');
+        
+        try {
+          for (const app of selectedApplications) {
+            const { resume, applicant, position } = app;
+            const filename = `${applicant.name}_${applicant.studentNumber}_${position.name}_이력서`;
+            
+            if (resume.type === 'LINK') {
+              downloadLinkAsTxt(resume.url, `${filename}.txt`);
+            } else {
+              await forceDownload(resume.url, `${filename}.pdf`);
+            }
+            await wait(300);
+          }
+          toast.success('개별 이력서 다운로드가 완료되었습니다.');
+        } catch (err) {
+          console.error('개별 이력서 다운로드 실패:', err);
+          toast.error('이력서 다운로드에 실패했습니다.');
+        }
       }
       
     } catch (err) {
