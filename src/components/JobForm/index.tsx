@@ -472,7 +472,6 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
                     {location}
                   </SelectItem>
                 ))}
-                <SelectItem value="custom">직접 입력</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -495,18 +494,6 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
             </Select>
           </div>
         </div>
-
-        {jobData.location === "custom" && (
-          <div>
-            <Label htmlFor="customLocation">직접 입력</Label>
-            <Input
-              id="customLocation"
-              value={jobData.customLocation}
-              onChange={(e) => handleInputChange("customLocation", e.target.value)}
-              placeholder="근무 지역을 입력하세요"
-            />
-          </div>
-        )}
       </CardContent>
     </Card>
   );
