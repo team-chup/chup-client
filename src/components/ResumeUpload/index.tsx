@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import useFileUpload from "@/hooks/useFileUpload"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 const ALLOWED_EXTENSIONS = ['pdf'] as const;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -26,14 +27,16 @@ interface ResumeData {
 
 interface ResumeUploadProps {
   currentResume?: ResumeData;
-  onResumeChange: (resume: ResumeData) => void;
+  onResumeChange?: (resume: ResumeData) => void;
   editable?: boolean;
+  isApplyPage?: boolean
 }
 
 export default function ResumeUpload({
   currentResume,
   onResumeChange,
-  editable = false
+  editable = false,
+  isApplyPage = false
 }: ResumeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [resumeType, setResumeType] = useState<ResumeType>(currentResume?.type || 'LINK');
@@ -55,6 +58,12 @@ export default function ResumeUpload({
       }
     }
   }, [currentResume]);
+
+  useEffect(() => {
+    if (currentResume) {
+      setResumeType(currentResume?.type)
+    }
+  }, [])
 
   // 변경 여부 확인 - 메모이제이션으로 불필요한 연산 방지
   const checkIfChanged = useCallback((temp: ResumeData | undefined): boolean => {
@@ -104,7 +113,7 @@ export default function ResumeUpload({
         setTempResume(newResume);
         setIsChanged(checkIfChanged(newResume));
       } else {
-        onResumeChange(newResume);
+        onResumeChange?.(newResume);
         toast.success('이력서가 업로드되었습니다.');
       }
     } catch (error) {
@@ -157,7 +166,7 @@ export default function ResumeUpload({
         setTempResume(newResume);
         setIsChanged(checkIfChanged(newResume));
       } else {
-        onResumeChange(newResume);
+        onResumeChange?.(newResume);
       }
     }
   }, [currentResume?.size, editable, onResumeChange, checkIfChanged]);
@@ -167,7 +176,7 @@ export default function ResumeUpload({
     if (!tempResume) return;
     setIsSaving(true);
     try {
-      await onResumeChange(tempResume);
+      await onResumeChange?.(tempResume);
       setIsChanged(false);
       toast.success('이력서가 저장되었습니다.');
     } catch (error) {
@@ -197,7 +206,7 @@ export default function ResumeUpload({
   // 파일 초기화 핸들러
   const handleFileClear = useCallback(() => {
     setSelectedFile(null);
-    onResumeChange({
+    onResumeChange?.({
       name: '',
       type: 'PDF',
       url: ''
@@ -267,29 +276,31 @@ export default function ResumeUpload({
 
   return (
     <div className="space-y-2">
-      <div>
-        <RadioGroup
-          value={resumeType}
-          onValueChange={(value: ResumeType) => handleResumeTypeChange(value)}
-          className="flex gap-6 mt-2"
-        >
-          <div className="flex items-center gap-3">
-            <RadioGroupItem value="PDF" id="pdf-type" />
-            <Label htmlFor="pdf-type" className="text-sm font-normal">
-              PDF 파일
-            </Label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioGroupItem value="LINK" id="link-type" />
-            <Label htmlFor="link-type" className="text-sm font-normal">
-              링크
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
+      {!isApplyPage && (
+        <div>
+          <RadioGroup
+            value={resumeType}
+            onValueChange={(value: ResumeType) => handleResumeTypeChange(value)}
+            className="flex gap-6 mt-2"
+          >
+            <div className="flex items-center gap-3">
+              <RadioGroupItem value="PDF" id="pdf-type" />
+              <Label htmlFor="pdf-type" className="text-sm font-normal">
+                PDF 파일
+              </Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioGroupItem value="LINK" id="link-type" />
+              <Label htmlFor="link-type" className="text-sm font-normal">
+                링크
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+      )}
       {currentResume && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className={cn(isApplyPage && 'mt-[1.5rem]')}>
+          <CardHeader className={cn('flex', 'flex-row', 'items-center', 'justify-between', 'space-y-0', 'pb-2', isApplyPage && 'pt-2')}>
             <div className="flex items-center gap-3">
               {isUploading ? (
                 <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
@@ -364,52 +375,54 @@ export default function ResumeUpload({
               </div>
             )}
           </CardHeader>
-          <CardContent className="pt-0">
-            {resumeType === "PDF" ? (
-              <div>
-                <div
-                  className={dragAreaClasses}
-                  onDragEnter={handleDragEnter}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={handleClick}
-                >
-                  <div className="space-y-1 text-center">
-                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                    <div className="flex text-sm text-gray-600 items-center justify-center">
-                      <span className="flex items-center gap-1">
-                        <FileUp className="h-4 w-4" />
-                        파일 선택
-                      </span>
-                      <input
-                        id="resume-upload"
-                        name="resume-upload"
-                        type="file"
-                        accept=".pdf"
-                        className="sr-only"
-                        onChange={handleFileChange}
-                      />
-                      <p className="pl-1">또는 드래그 앤 드롭</p>
+          {!isApplyPage && (
+            <CardContent className="pt-0">
+              {resumeType === "PDF" ? (
+                <div>
+                  <div
+                    className={dragAreaClasses}
+                    onDragEnter={handleDragEnter}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={handleClick}
+                  >
+                    <div className="space-y-1 text-center">
+                      <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                      <div className="flex text-sm text-gray-600 items-center justify-center">
+                        <span className="flex items-center gap-1">
+                          <FileUp className="h-4 w-4" />
+                          파일 선택
+                        </span>
+                        <input
+                          id="resume-upload"
+                          name="resume-upload"
+                          type="file"
+                          accept=".pdf"
+                          className="sr-only"
+                          onChange={handleFileChange}
+                        />
+                        <p className="pl-1">또는 드래그 앤 드롭</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
-                    </p>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div>
-                <Input
-                  id="resumeUrl"
-                  value={resumeLink}
-                  onChange={handleResumeLinkChange}
-                  placeholder="https://drive.google.com/... 또는 https://github.com/..."
-                  className="mt-2"
-                />
-              </div>
-            )}
-          </CardContent>
+              ) : (
+                <div>
+                  <Input
+                    id="resumeUrl"
+                    value={resumeLink}
+                    onChange={handleResumeLinkChange}
+                    placeholder="https://drive.google.com/... 또는 https://github.com/..."
+                    className="mt-2"
+                  />
+                </div>
+              )}
+            </CardContent>
+          )}
         </Card>
       )}
     </div>
