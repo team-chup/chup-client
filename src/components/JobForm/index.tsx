@@ -101,9 +101,10 @@ export interface JobFormProps {
   onSubmit: (formData: JobFormData, selectedPositionIds: number[], processedFiles: AttachmentFile[]) => Promise<void>;
   isSubmitting: boolean;
   showAttachments?: boolean;
+  isChangeablePositions?: boolean;
 }
 
-export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false }: JobFormProps) {
+export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true }: JobFormProps) {
   const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
@@ -178,16 +179,12 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
     try {
       setIsAddingPosition(true);
       
-      // 새 포지션 생성 API 호출
       await createPosition(customPositionName);
       
-      // 생성 후 전체 포지션 목록을 다시 불러옴
       const updatedPositions = await loadPositions();
       
-      // 방금 생성한 포지션 찾기
       const newPosition = updatedPositions.find(p => p.name === customPositionName);
       
-      // 새 포지션이 정상적으로 생성되었다면 선택 상태로 변경
       if (newPosition) {
         setSelectedPositions(prev => [...prev, newPosition.id]);
         toast.success(`'${newPosition.name}' 포지션이 추가되었습니다.`);
@@ -410,8 +407,12 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
                       checked={selectedPositions.includes(position.id)}
                       onCheckedChange={(checked) => togglePosition(position.id, !!checked)}
                       className="border-zinc-900 data-[state=checked]:bg-zinc-900 data-[state=checked]:text-white"
+                      disabled={!isChangeablePositions}
                     />
-                    <Label htmlFor={`position-${position.id}`} className="text-sm">
+                    <Label 
+                      htmlFor={`position-${position.id}`} 
+                      className={`text-sm ${!isChangeablePositions ? 'text-gray-500' : ''}`}
+                    >
                       {position.name}
                     </Label>
                   </div>
@@ -419,28 +420,30 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="customPosition">커스텀 포지션 추가</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  id="customPosition"
-                  value={customPositionName}
-                  onChange={(e) => setCustomPositionName(e.target.value)}
-                  placeholder="새로운 포지션명 입력"
-                  disabled={isAddingPosition}
-                />
-                <Button 
-                  onClick={addCustomPosition} 
-                  disabled={!customPositionName || isAddingPosition}
-                >
-                  {isAddingPosition ? (
-                    <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                </Button>
+            {isChangeablePositions && (
+              <div>
+                <Label htmlFor="customPosition">커스텀 포지션 추가</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="customPosition"
+                    value={customPositionName}
+                    onChange={(e) => setCustomPositionName(e.target.value)}
+                    placeholder="새로운 포지션명 입력"
+                    disabled={isAddingPosition}
+                  />
+                  <Button 
+                    onClick={addCustomPosition} 
+                    disabled={!customPositionName || isAddingPosition}
+                  >
+                    {isAddingPosition ? (
+                      <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </CardContent>

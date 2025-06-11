@@ -152,6 +152,7 @@ export default function EditJobPage({ params }: Props) {
           initialData={initialFormData}
           submitButtonText="공고 수정"
           onSubmit={handleSubmit}
+          isChangeablePositions={false}
           isSubmitting={isSubmitting}
           showAttachments={true}
         />
