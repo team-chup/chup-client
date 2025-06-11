@@ -12,6 +12,7 @@ import useFileUpload from "@/hooks/useFileUpload"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { forceDownload } from "@/utils/downloadUtils"
 
 const ALLOWED_EXTENSIONS = ['pdf'] as const;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -319,9 +320,11 @@ export default function ResumeUpload({
                         {tempResume.name && (
                           <p className="text-md hover:underline cursor-pointer">
                             <a 
-                              href={tempResume.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                forceDownload(tempResume.url, tempResume.name);
+                              }}
+                              href="#"
                             >
                               {displayFileName}
                             </a>
