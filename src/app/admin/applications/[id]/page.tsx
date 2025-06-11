@@ -102,10 +102,10 @@ export default function ApplicationManagementPage() {
     
     try {
       if (resume.type === 'LINK') {
-        downloadLinkAsTxt(resume.url, name);
-        toast.success('링크 정보가 텍스트 파일로 다운로드되었습니다.');
+        downloadLinkAsTxt(resume.url, `${name}(${applicant.studentNumber})_이력서.txt`);
+        toast.success('링크가 텍스트 파일로 다운로드되었습니다.');
       } else {
-        await forceDownload(resume.url, `${name}_이력서.pdf`);
+        await forceDownload(resume.url, `${name}(${applicant.studentNumber})_이력서.pdf`);
         toast.success('이력서 다운로드가 완료되었습니다.');
       }
     } catch (error) {
@@ -134,7 +134,7 @@ export default function ApplicationManagementPage() {
 
       let linkDownloadCount = 0;
       for (const app of linkTypeApplications) {
-        const filename = `${app.applicant.name}(${app.applicant.studentNumber})`;
+        const filename = `${app.applicant.name}(${app.applicant.studentNumber})_이력서.txt`;
         downloadLinkAsTxt(app.resume.url, filename);
         linkDownloadCount++;
         await wait(100);
