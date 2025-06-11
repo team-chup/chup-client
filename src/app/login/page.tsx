@@ -1,7 +1,7 @@
 'use client';
 
 import { useGoogleLogin } from '@react-oauth/google';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { instance } from '@/lib/axios';
 import { LoginResponse } from '@/types/auth';
 import { setCookie } from '@/lib/cookie';

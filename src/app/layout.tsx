@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from 'sonner';
 import { Providers } from '@/lib/provider';
 import "./globals.css";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -23,7 +24,9 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${inter.variable} antialiased`}>
         <Providers>
-          {children}
+          <Suspense>
+            {children}
+          </Suspense>
           <Toaster position="bottom-right" expand={true} richColors />
         </Providers>
       </body>
