@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useCallback } from "react"
-import { Save, Edit, FileText, Loader2 } from "lucide-react"
+import { Save, Edit, FileText, Loader2, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,9 @@ import { useProfileMutation } from "@/hooks/useProfileMutation"
 import { updateUserResume } from "@/api/user"
 import { useQueryClient } from '@tanstack/react-query';
 import { Label } from "@/components/ui/label"
+import { googleLogout } from '@react-oauth/google';
+import { removeCookie } from '@/lib/cookie';
+import { useRouter } from 'next/navigation';
 
 type UserProfileWithResume = {
   name: string;
@@ -54,6 +57,7 @@ export default function ProfilePage() {
   const { updateProfile, isUpdating } = useProfileMutation()
   const shakeAnimation = "animate-shake"
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
@@ -166,6 +170,13 @@ export default function ProfilePage() {
     }
   }, [formData, validateFormWithSchema, profile, queryClient]);
 
+  const handleLogout = useCallback(() => {
+    googleLogout();
+    removeCookie('accessToken');
+    removeCookie('refreshToken');
+    router.push('/login');
+  }, [router]);
+
   if (isLoading || !formData.resume) {
     return (
       <div className="bg-gray-50">
@@ -175,6 +186,10 @@ export default function ProfilePage() {
               <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
               <p className="text-gray-600 mt-1">개인정보와 설정을 관리하세요</p>
             </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              로그아웃
+            </Button>
           </div>
 
           <div className="grid gap-6">
@@ -256,6 +271,10 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold text-gray-900">프로필 관리</h1>
             <p className="text-gray-600 mt-1">개인정보와 설정을 관리하세요</p>
           </div>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            로그아웃
+          </Button>
         </div>
 
         <div className="grid gap-6">

@@ -3,9 +3,7 @@
 import { useState } from "react"
 import { Menu, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { googleLogout } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
-import { removeCookie } from '@/lib/cookie';
 import Logo from '@/assets/images/Logo.png';
 import Image from 'next/image'
 
@@ -29,13 +27,6 @@ const adminNavItems = [
 export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter();
-
-  const handleLogout = () => {
-    googleLogout();
-    removeCookie('accessToken');
-    removeCookie('refreshToken');
-    router.push('/login');
-  }
 
   const navItems = isAdmin ? adminNavItems : studentNavItems
 
@@ -75,10 +66,6 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
                 {item.name}
               </a>
             ))}
-
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              로그아웃
-            </Button>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -104,12 +91,6 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
                   {item.name}
                 </a>
               ))}
-
-              <div className="px-4">
-                <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-                  로그아웃
-                </Button>
-              </div>
             </nav>
           </div>
         )}
