@@ -30,17 +30,20 @@ export default function CreateJobPostingPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentWithFile[]>([]);
 
-  const formatDateForAPI = (date: Date | null): string => {
+  const formatDateForAPI = (date: Date | null, isEndDate: boolean = false): string => {
     if (!date) return "";
     
-    // 날짜의 시간을 정오(12:00)로 설정하여 시간대 변환 시 날짜가 바뀌는 문제 방지
     const year = date.getFullYear();
-    const month = date.getMonth();
+    const month = date.getMonth() + 1; // JavaScript의 월은 0부터 시작하므로 1을 더함
     const day = date.getDate();
     
-    // 한국 시간 기준 정오로 설정
-    const adjustedDate = new Date(year, month, day, 15, 0, 0);
-    return adjustedDate.toISOString();
+    // 시작일은 0시 0분 0초, 마감일은 23시 59분 59초로 설정
+    const hours = isEndDate ? 23 : 0;
+    const minutes = isEndDate ? 59 : 0;
+    const seconds = isEndDate ? 59 : 0;
+    
+    // LocalDateTime 형식으로 반환 (YYYY-MM-DDTHH:mm:ss)
+    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const handleCreateJobPosting = async (
@@ -56,9 +59,9 @@ export default function CreateJobPostingPage() {
         ? "SEOUL"
         : LOCATION_MAPPING[finalLocation] || "SEOUL";
       
-      // 수정된 날짜 변환 함수 사용
-      const startAt = formatDateForAPI(formData.startDate);
-      const endAt = formatDateForAPI(formData.endDate);
+      // 시작일은 0시 0분 0초, 마감일은 23시 59분 59초로 설정
+      const startAt = formatDateForAPI(formData.startDate, false);
+      const endAt = formatDateForAPI(formData.endDate, true);
       
       // 첨부파일 섹션에서 업로드된 파일 처리
       const allFiles = [...uploadedFiles];
