@@ -1,7 +1,7 @@
 'use client';
 
 import { useGoogleLogin } from '@react-oauth/google';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { instance } from '@/lib/axios';
 import { LoginResponse } from '@/types/auth';
 import { setCookie } from '@/lib/cookie';
@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/'; 
 
   const isAllowedEmail = (email: string) => {
     if (email.endsWith('@gsm.hs.kr')) return true;
@@ -51,6 +53,8 @@ export default function LoginPage() {
         let nextPage = '/';
         if (data.authority === 'TEMP') {
           nextPage = '/signup';
+        } else if (redirectTo !== '/admin/main' || '/main') {
+          nextPage = redirectTo;
         } else if (data.authority === 'TEACHER') {
           nextPage = '/admin/main';
         }
