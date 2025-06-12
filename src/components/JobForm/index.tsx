@@ -398,7 +398,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
         ) : (
           <>
             <div>
-              <Label>포지션 선택</Label>
+              <Label>포지션 선택 *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                 {positions.map((position) => (
                   <div key={`position-${position.id}`} className="flex items-center space-x-2">
