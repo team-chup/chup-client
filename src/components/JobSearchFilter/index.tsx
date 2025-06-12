@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { RotateCcw, Search } from "lucide-react"
 import { EMPLOYMENT_TYPES, LOCATIONS } from "@/constants/jobData"
 import { memo } from "react"
 import { Position } from "@/types/posting"
+import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 
 interface JobSearchFilterProps {
   searchQuery: string
@@ -31,6 +31,15 @@ function JobSearchFilter({
   onReset,
   positions
 }: JobSearchFilterProps) {
+  const positionOptions: ComboboxOption[] = positions.map((position) => ({
+    value: position.name,
+    label: position.name
+  }))
+
+  const locationOptions: ComboboxOption[] = LOCATIONS
+
+  const employmentTypeOptions: ComboboxOption[] = EMPLOYMENT_TYPES
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
       <div className="flex flex-col lg:flex-row gap-4">
@@ -47,44 +56,35 @@ function JobSearchFilter({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Select value={selectedPosition} onValueChange={onPositionChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="포지션" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {positions.map((position) => (
-                <SelectItem key={position.id} value={position.name}>
-                  {position.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={positionOptions}
+            value={selectedPosition}
+            onValueChange={onPositionChange}
+            placeholder="포지션"
+            searchPlaceholder="포지션 검색..."
+            emptyMessage="포지션 결과 없음"
+            width="w-full sm:w-[180px]"
+          />
 
-          <Select value={selectedLocation} onValueChange={onLocationChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="지역" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {LOCATIONS.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={locationOptions}
+            value={selectedLocation}
+            onValueChange={onLocationChange}
+            placeholder="지역"
+            searchPlaceholder="지역 검색..."
+            emptyMessage="지역 결과 없음"
+            width="w-full sm:w-[180px]"
+          />
 
-          <Select value={selectedType} onValueChange={onTypeChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="고용형태" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {EMPLOYMENT_TYPES.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={employmentTypeOptions}
+            value={selectedType}
+            onValueChange={onTypeChange}
+            placeholder="고용형태"
+            searchPlaceholder="고용형태 검색..."
+            emptyMessage="고용형태 결과 없음"
+            width="w-full sm:w-[180px]"
+          />
 
           <Button
             variant="outline"

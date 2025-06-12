@@ -1,9 +1,6 @@
-interface Option {
-  value: string;
-  label: string;
-}
+import { ComboboxOption } from "@/components/ui/combobox"
 
-export const LOCATIONS: Option[] = [
+export const LOCATIONS: ComboboxOption[] = [
   { value: "SEOUL", label: "서울" },
   { value: "BUSAN", label: "부산" },
   { value: "DAEGU", label: "대구" },
@@ -23,7 +20,7 @@ export const LOCATIONS: Option[] = [
   { value: "JEJU", label: "제주" }
 ]
 
-export const EMPLOYMENT_TYPES: Option[] = [
+export const EMPLOYMENT_TYPES: ComboboxOption[] = [
   { value: "FULL_TIME", label: "정규직" },
   { value: "CONTRACT", label: "계약직" },
   { value: "INTERN", label: "인턴" },

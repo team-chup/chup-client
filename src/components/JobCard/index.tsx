@@ -5,6 +5,7 @@ import { Calendar, MapPin, Users, Eye, Settings } from "lucide-react"
 import { getTypeColor, getEmploymentTypeText, getLocationText, getDaysLeft } from "@/utils/jobUtils"
 import Link from "next/link"
 import { memo } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Position {
   id: number
@@ -103,5 +104,38 @@ function JobCard({
     </Card>
   )
 }
+
+
+export const SkeletonJobCard = memo(({ index }: { index: number }) => (
+  <Card key={index} className="hover:shadow-md min-h-[140px] transition-shadow bg-white">
+    <CardContent className="p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-4 flex-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-3">
+              <Skeleton className="h-6 w-48 bg-gray-200" />
+              <Skeleton className="h-5 w-16 rounded-full bg-gray-200" />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-5">
+              <Skeleton className="h-5 w-24 rounded-full bg-gray-200" />
+              <Skeleton className="h-5 w-20 rounded-full bg-gray-200" />
+            </div>
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-4 w-20 bg-gray-200" />
+              <Skeleton className="h-4 w-16 bg-gray-200" />
+              <Skeleton className="h-4 w-14 bg-gray-200" />
+            </div>
+          </div>
+        </div>
+        <Link href="#">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-[#fafafa]" disabled>
+            상세보기
+          </Button>
+        </Link>
+      </div>
+    </CardContent>
+  </Card>
+));
+
 
 export default memo(JobCard);
