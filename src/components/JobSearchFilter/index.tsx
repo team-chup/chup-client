@@ -2,8 +2,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { RotateCcw, Search } from "lucide-react"
-import { EMPLOYMENT_TYPES, LOCATIONS, POSITIONS } from "@/constants/jobData"
+import { EMPLOYMENT_TYPES, LOCATIONS } from "@/constants/jobData"
 import { memo } from "react"
+import { Position } from "@/types/posting"
 
 interface JobSearchFilterProps {
   searchQuery: string
@@ -15,6 +16,7 @@ interface JobSearchFilterProps {
   onLocationChange: (value: string) => void
   onTypeChange: (value: string) => void
   onReset: () => void
+  positions: Position[]
 }
 
 function JobSearchFilter({
@@ -26,7 +28,8 @@ function JobSearchFilter({
   onPositionChange,
   onLocationChange,
   onTypeChange,
-  onReset
+  onReset,
+  positions
 }: JobSearchFilterProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -49,9 +52,9 @@ function JobSearchFilter({
               <SelectValue placeholder="포지션" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {POSITIONS.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {positions.map((position) => (
+                <SelectItem key={position.id} value={position.name}>
+                  {position.name}
                 </SelectItem>
               ))}
             </SelectContent>

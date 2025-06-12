@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useJobListingsQuery } from "@/hooks/useJobListingsQuery"
+import { usePositionsQuery } from "@/hooks/usePositionsQuery"
 
 interface MainPageProps {
   isAdmin: boolean;
@@ -63,6 +64,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
   const { data: jobListings, isLoading: isJobListingsLoading } = useJobListingsQuery()
+  const { data: positions, isLoading: isPositionsLoading } = usePositionsQuery()
 
   const filteredJobListings = useMemo(() => {
     if (!jobListings?.postings) return [];
@@ -90,8 +92,8 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   }, [jobListings?.postings, searchQuery, selectedPosition, selectedLocation, selectedType]);
 
   const isLoading = useMemo(() => 
-    isProfileLoading || isJobListingsLoading,
-    [isProfileLoading, isJobListingsLoading]
+    isProfileLoading || isJobListingsLoading || isPositionsLoading,
+    [isProfileLoading, isJobListingsLoading, isPositionsLoading]
   );
 
   const isEmpty = useMemo(() => 
@@ -158,6 +160,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
           onLocationChange={setSelectedLocation}
           onTypeChange={setSelectedType}
           onReset={handleReset}
+          positions={positions || []}
         />
 
         <div className="grid gap-6">
