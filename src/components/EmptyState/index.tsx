@@ -1,6 +1,7 @@
 import { Briefcase } from "lucide-react"
+import { memo } from "react"
 
-export default function EmptyState() {
+function EmptyState() {
   return (
     <div className="text-center py-12">
       <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -9,3 +10,5 @@ export default function EmptyState() {
     </div>
   )
 }
+
+export default memo(EmptyState);

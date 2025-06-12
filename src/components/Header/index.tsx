@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X, Plus } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
 import Logo from '@/assets/images/Logo.png';
@@ -14,7 +14,7 @@ interface HeaderProps {
 }
 
 const studentNavItems = [
-  { name: "채용공고", href: "/", key: "jobs" },
+  { name: "채용공고", href: "/main", key: "jobs" },
   { name: "지원현황", href: "/applications", key: "applications" },
   { name: "프로필", href: "/profile", key: "profile" },
 ]
@@ -38,14 +38,8 @@ export function Header({ isAdmin = false, currentPage = "" }: HeaderProps) {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4 cursor-pointer" onClick={() => {
-            if (isAdmin) {
-              router.push('/admin/main');
-            } else {
-              router.push('/');
-            }
-          }}>
-            <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center cursor-pointer" onClick={() => router.push(isAdmin ? '/admin/main' : '/main')}>
               <div className="relative w-12 h-12">
                 <Image
                   src={Logo}
