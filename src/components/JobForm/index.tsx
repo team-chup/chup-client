@@ -588,6 +588,12 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
       >
         {isSubmitting ? "처리 중..." : submitButtonText}
       </Button>
+      
+      <Button
+        className="text-white bg-red-600 hover:bg-red-700"
+      >
+        {isSubmitting ? "처리 중..." : '공고 삭제'}
+      </Button>
     </div>
   );
 
