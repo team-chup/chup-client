@@ -9,6 +9,7 @@ import { getJobListings } from "@/api/posting"
 import { JobListingsResponse } from "@/types/posting"
 import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { Skeleton } from "@/components/ui/skeleton"
+import useDeleteIdStore from "@/store/useDeleteIdStore"
 
 interface MainPageProps {
   isAdmin: boolean;
@@ -19,6 +20,8 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   const [selectedPosition, setSelectedPosition] = useState("")
   const [selectedLocation, setSelectedLocation] = useState("")
   const [selectedType, setSelectedType] = useState("")
+
+  const { deleteId } = useDeleteIdStore();
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
 
@@ -32,23 +35,25 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   })
 
   const filteredJobListings = jobListings?.postings.filter((job) => {
+    if (deleteId !== undefined && job.id === Number(deleteId)) return false
+  
     const matchesSearch = searchQuery
       ? job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.positions.some((pos) => pos.name.toLowerCase().includes(searchQuery.toLowerCase()))
       : true
-
+  
     const matchesPosition = selectedPosition
       ? job.positions.some((pos) => pos.name === selectedPosition)
       : true
-
+  
     const matchesLocation = selectedLocation
       ? job.companyLocation === selectedLocation
       : true
-
+  
     const matchesType = selectedType
       ? job.employmentType === selectedType
       : true
-
+  
     return matchesSearch && matchesPosition && matchesLocation && matchesType
   })
 

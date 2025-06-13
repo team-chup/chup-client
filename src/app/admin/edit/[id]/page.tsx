@@ -18,6 +18,7 @@ import JobForm, {
 import { DialogHeader, DialogFooter, DialogTitle, DialogContent, Dialog } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import useDeleteIdStore from "@/store/useDeleteIdStore"
 
 interface Props {
   params: {
@@ -34,6 +35,8 @@ export default function EditJobPage({ params }: Props) {
   const [isJobPostingLoading, setIsJobPostingLoading] = useState(true);
   const [initialFormData, setInitialFormData] = useState<JobFormData | undefined>(undefined);
   const [initialPositions, setInitialPositions] = useState<number[]>([]);
+
+  const { setDeleteId } = useDeleteIdStore();
 
   useEffect(() => {
     const loadJobPostingDetail = async () => {
@@ -67,7 +70,6 @@ export default function EditJobPage({ params }: Props) {
           positions: jobPostingDetail.positions || []
         });
 
-        console.log("포지션 정보:", jobPostingDetail.positions);
       } catch (error) {
         console.error("채용공고 상세 정보 로드 실패:", error);
         toast.error("채용공고 정보를 불러오는데 실패했습니다.");
@@ -139,6 +141,7 @@ export default function EditJobPage({ params }: Props) {
       await deleteJobPosting(postingId);
       
       toast.success("채용공고가 삭제되었습니다");
+      setDeleteId(postingId)
       router.push("/admin/main");
       
     } catch (error) {
