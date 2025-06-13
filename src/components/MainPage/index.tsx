@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useJobListingsQuery } from "@/hooks/useJobListingsQuery"
 import { usePositionsQuery } from "@/hooks/usePositionsQuery"
 import { SkeletonJobCard } from "@/components/JobCard"
+import useDeleteIdStore from "@/store/useDeleteIdStore"
 
 interface MainPageProps {
   isAdmin: boolean;
@@ -20,6 +21,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
   const [selectedLocation, setSelectedLocation] = useState("")
   const [selectedType, setSelectedType] = useState("")
 
+  const { deleteId } = useDeleteIdStore();
 
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery()
   const { data: jobListings, isLoading: isJobListingsLoading } = useJobListingsQuery()
@@ -29,6 +31,7 @@ export default function MainPage({ isAdmin = false }: MainPageProps) {
     if (!jobListings?.postings) return [];
     
     return jobListings.postings.filter((job) => {
+      if (deleteId !== undefined && job.id === Number(deleteId)) return false
       const matchesSearch = searchQuery
         ? job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           job.positions.some((pos) => pos.name.toLowerCase().includes(searchQuery.toLowerCase()))
