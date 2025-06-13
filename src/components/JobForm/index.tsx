@@ -18,7 +18,6 @@ import {
   Position 
 } from "@/types/posting"
 import usePostingFileUpload from "@/hooks/usePostingFileUpload"
-import { formatFileSize } from "@/utils/formatFileSize"
 
 const ALLOWED_EXTENSIONS = [
   'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm', 'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
@@ -102,9 +101,10 @@ export interface JobFormProps {
   isSubmitting: boolean;
   showAttachments?: boolean;
   isChangeablePositions?: boolean;
+  setIsDeleteBtnClick?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true }: JobFormProps) {
+export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true, setIsDeleteBtnClick }: JobFormProps) {
   const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
@@ -590,9 +590,10 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
       </Button>
       
       <Button
+        onClick={() => setIsDeleteBtnClick?.(true)}
         className="text-white bg-red-600 hover:bg-red-700"
       >
-        {isSubmitting ? "처리 중..." : '공고 삭제'}
+        공고 삭제
       </Button>
     </div>
   );
