@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getJobPostingDetail, updateJobPosting } from "@/api/posting"
+import { deleteJobPosting, getJobPostingDetail, updateJobPosting } from "@/api/posting"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { 
@@ -15,6 +15,10 @@ import JobForm, {
   REVERSE_LOCATION_MAPPING,
   REVERSE_EMPLOYMENT_MAPPING
 } from "@/components/JobForm"
+import { DialogHeader, DialogFooter, DialogTitle, DialogContent, Dialog } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import useDeleteIdStore from "@/store/useDeleteIdStore"
 
 interface Props {
   params: {
@@ -26,9 +30,13 @@ export default function EditJobPage({ params }: Props) {
   const postingId = params.id;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteBtnClick, setIsDeleteBtnClick] = useState(false);
   const [isJobPostingLoading, setIsJobPostingLoading] = useState(true);
   const [initialFormData, setInitialFormData] = useState<JobFormData | undefined>(undefined);
   const [initialPositions, setInitialPositions] = useState<number[]>([]);
+
+  const { setDeleteId } = useDeleteIdStore();
 
   useEffect(() => {
     const loadJobPostingDetail = async () => {
@@ -62,7 +70,6 @@ export default function EditJobPage({ params }: Props) {
           positions: jobPostingDetail.positions || []
         });
 
-        console.log("포지션 정보:", jobPostingDetail.positions);
       } catch (error) {
         console.error("채용공고 상세 정보 로드 실패:", error);
         toast.error("채용공고 정보를 불러오는데 실패했습니다.");
@@ -127,6 +134,23 @@ export default function EditJobPage({ params }: Props) {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      
+      await deleteJobPosting(postingId);
+      
+      toast.success("채용공고가 삭제되었습니다");
+      setDeleteId(postingId)
+      router.push("/admin/main");
+      
+    } catch (error) {
+      console.error("채용공고 삭제 실패:", error);
+      toast.error("채용공고 삭제에 실패했습니다");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isJobPostingLoading) {
     return (
@@ -140,24 +164,62 @@ export default function EditJobPage({ params }: Props) {
   }
 
   return (
-    <div className="bg-gray-50">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">채용공고 수정</h1>
-          <p className="text-gray-600">채용공고 정보를 수정하여 GSM 학생들에게 정확한 정보를 제공하세요</p>
-        </div>
+    <>
+      <Dialog open={isDeleteBtnClick} onOpenChange={setIsDeleteBtnClick}>
+        <DialogContent className={cn('bg-white')}>
+          <DialogHeader>
+            <DialogTitle>정말 삭제하시겠습니까?</DialogTitle>
+          </DialogHeader>
 
-        <div className="grid gap-6">
-        <JobForm
-          initialData={initialFormData}
-          submitButtonText="공고 수정"
-          onSubmit={handleSubmit}
-          isChangeablePositions={false}
-          isSubmitting={isSubmitting}
-          showAttachments={true}
-        />
-        </div>
-      </main>
-    </div>
+          <div>
+            이 채용공고를 삭제하면 되돌릴 수 없습니다.
+            <br />
+            해당 공고에 지원한 모든 지원자의 정보도 함께 삭제되며, 복구가 불가능합니다.
+
+            <br />
+            <br />
+            <p className={cn('font-bold')}>
+              정말 삭제하시겠습니까?
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant={'outline'}
+              onClick={() => setIsDeleteBtnClick(false)}
+            >
+              취소
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "삭제 중..." : "삭제하기"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <div className="bg-gray-50">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">채용공고 수정</h1>
+            <p className="text-gray-600">채용공고 정보를 수정하여 GSM 학생들에게 정확한 정보를 제공하세요</p>
+          </div>
+
+          <div className="grid gap-6">
+          <JobForm
+            initialData={initialFormData}
+            submitButtonText="공고 수정"
+            onSubmit={handleSubmit}
+            isChangeablePositions={false}
+            isSubmitting={isSubmitting}
+            showAttachments={true}
+            setIsDeleteBtnClick={setIsDeleteBtnClick}
+            />
+          </div>
+        </main>
+      </div>
+    </>
   )
 }

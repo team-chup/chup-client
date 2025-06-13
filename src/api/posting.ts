@@ -34,6 +34,10 @@ export const updateJobPosting = async (id: string | number, requestData: UpdateJ
   return data
 }
 
+export const deleteJobPosting = async (postingId: string) => {
+  await instance.delete(`/posting/${postingId}`)
+}
+
 interface PositionsResponse {
   positions: Position[]
 }

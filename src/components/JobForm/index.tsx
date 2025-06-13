@@ -18,7 +18,6 @@ import {
   Position 
 } from "@/types/posting"
 import usePostingFileUpload from "@/hooks/usePostingFileUpload"
-import { formatFileSize } from "@/utils/formatFileSize"
 
 const ALLOWED_EXTENSIONS = [
   'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm', 'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
@@ -102,9 +101,10 @@ export interface JobFormProps {
   isSubmitting: boolean;
   showAttachments?: boolean;
   isChangeablePositions?: boolean;
+  setIsDeleteBtnClick?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true }: JobFormProps) {
+export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true, setIsDeleteBtnClick }: JobFormProps) {
   const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
@@ -398,7 +398,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
         ) : (
           <>
             <div>
-              <Label>포지션 선택</Label>
+              <Label>포지션 선택 *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                 {positions.map((position) => (
                   <div key={`position-${position.id}`} className="flex items-center space-x-2">
@@ -587,6 +587,13 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
         className="text-white bg-blue-600 hover:bg-blue-700"
       >
         {isSubmitting ? "처리 중..." : submitButtonText}
+      </Button>
+      
+      <Button
+        onClick={() => setIsDeleteBtnClick?.(true)}
+        className="text-white bg-red-600 hover:bg-red-700"
+      >
+        공고 삭제
       </Button>
     </div>
   );
