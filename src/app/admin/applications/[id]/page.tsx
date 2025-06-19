@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Calendar, Download, Mail, Users } from "lucide-react"
+import { Calendar, Download, Mail, Users, Link, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -344,6 +344,18 @@ export default function ApplicationManagementPage() {
                     </div>
 
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-gray-500 hover:text-gray-900"
+                        onClick={() => {
+                          navigator.clipboard.writeText(application.resume.url);
+                          toast.success('이력서 링크가 복사되었습니다.');
+                        }}
+                      >
+                        <Link className="h-4 w-4 mr-2" />
+                        <span>{application.resume.type === 'LINK' ? '이력서 링크 복사' : 'PDF 다운로드 링크 복사'}</span>
+                      </Button>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         <span>지원일: {formatDate(application.createdAt)}</span>
