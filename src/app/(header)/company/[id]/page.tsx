@@ -12,6 +12,7 @@ import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jo
 import { formatDate } from "@/utils/dateUtils"
 import Link from "next/link"
 import { forceDownload } from "@/utils/downloadUtils"
+import { convertUrlsToLinks } from "@/utils/textUtils"
 
 export default function CompanyDetailPage() {
   const params = useParams()
@@ -87,7 +88,7 @@ export default function CompanyDetailPage() {
           <CardContent>
             <div className="prose max-w-none">
               <div className="whitespace-pre-wrap font-sans text-gray-900 leading-relaxed text-base">
-                {posting.companyDescription}
+                {convertUrlsToLinks(posting.companyDescription)}
               </div>
             </div>
           </CardContent>
