@@ -17,7 +17,7 @@ import {
   EmploymentType, 
   Position 
 } from "@/types/posting"
-import usePostingFileUpload from "@/hooks/usePostingFileUpload"
+// import usePostingFileUpload from "@/hooks/usePostingFileUpload"
 
 const ALLOWED_EXTENSIONS = [
   'pdf', 'jpeg', 'jpg', 'png', 'xls', 'xlsx', 'xlsm', 'hwp', 'hwpx', 'hwt', 'ppt', 'pptx', 'zip'
@@ -105,7 +105,7 @@ export interface JobFormProps {
 }
 
 export default function JobForm({ initialData, submitButtonText, onSubmit, isSubmitting, showAttachments = false, isChangeablePositions = true, setIsDeleteBtnClick }: JobFormProps) {
-  const { uploadFile, isUploading } = usePostingFileUpload();
+  // const { uploadFile, isUploading } = usePostingFileUpload();
   
   const [positions, setPositions] = useState<Position[]>([]);
   const [selectedPositions, setSelectedPositions] = useState<number[]>([]);
@@ -314,7 +314,9 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
           };
         }
         
-        const url = await uploadFile(attachment.file);
+        // const url = await uploadFile(attachment.file);
+        // const url = await uploadPosting(attachment.file);
+        const url = "";
         return {
           url,
           name: attachment.file.name
@@ -581,7 +583,7 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
         onClick={handleSubmit}
         disabled={
           isSubmitting ||
-          isUploading ||
+          // isUploading ||
           !validateRequiredFields()
         }
         className="text-white bg-blue-600 hover:bg-blue-700"

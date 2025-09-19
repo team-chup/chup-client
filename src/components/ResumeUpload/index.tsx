@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatFileSize } from "@/utils/formatFileSize"
 import { useState, useEffect, useCallback, useMemo } from "react"
-import useFileUpload from "@/hooks/useFileUpload"
+// import useFileUpload from "@/hooks/useFileUpload"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -39,11 +39,11 @@ export default function ResumeUpload({
   editable = false,
   isApplyPage = false
 }: ResumeUploadProps) {
-  const [isDragging, setIsDragging] = useState(false);
+  // const [isDragging, setIsDragging] = useState(false);
   const [resumeType, setResumeType] = useState<ResumeType>('LINK');
   const [resumeLink, setResumeLink] = useState(currentResume?.url || '');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadFile, isUploading } = useFileUpload();
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // const { uploadFile, isUploading } = useFileUpload();
   
   const [tempResume, setTempResume] = useState<ResumeData | undefined>(currentResume);
   const [isChanged, setIsChanged] = useState(false);
@@ -85,7 +85,7 @@ export default function ResumeUpload({
   }, []);
 
   // 파일 변경 핸들러
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -121,7 +121,7 @@ export default function ResumeUpload({
       toast.error('파일 업로드에 실패했습니다.');
       setSelectedFile(null);
     }
-  }, [uploadFile, editable, onResumeChange, checkIfChanged, isValidFileExtension]);
+  }, [uploadFile, editable, onResumeChange, checkIfChanged, isValidFileExtension]); */
 
   // 이력서 타입 변경 핸들러
   const handleResumeTypeChange = useCallback((type: ResumeType) => {
@@ -138,7 +138,7 @@ export default function ResumeUpload({
       setTempResume(newTempResume);
       
       if (type === 'LINK') {
-        setSelectedFile(null);
+        // setSelectedFile(null);
         setResumeLink(newTempResume.url || '');
       } else {
         if (newTempResume.url) {
@@ -195,7 +195,7 @@ export default function ResumeUpload({
       
       if (currentResume.type === 'LINK') {
         setResumeLink(currentResume.url || '');
-        setSelectedFile(null);
+        // setSelectedFile(null);
       } else {
         setResumeLink('');
       }
@@ -205,17 +205,17 @@ export default function ResumeUpload({
   }, [currentResume]);
 
   // 파일 초기화 핸들러
-  const handleFileClear = useCallback(() => {
+  /* const handleFileClear = useCallback(() => {
     setSelectedFile(null);
     onResumeChange?.({
       name: '',
       type: 'PDF',
       url: ''
     });
-  }, [onResumeChange]);
+  }, [onResumeChange]); */
 
-  // 드래그 이벤트 핸들러
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
+  // 드래그 이벤트 핸들러 - 임시로 비활성화
+  /* const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -250,7 +250,7 @@ export default function ResumeUpload({
 
   const handleClick = useCallback(() => {
     document.getElementById('resume-upload')?.click();
-  }, []);
+  }, []); */
 
   // URL 표시 텍스트 계산 - 메모이제이션으로 불필요한 연산 방지
   const displayUrl = useMemo(() => {
@@ -269,11 +269,11 @@ export default function ResumeUpload({
   }, [tempResume?.name]);
 
   // 드래그 영역 클래스 계산 - 메모이제이션으로 불필요한 연산 방지
-  const dragAreaClasses = useMemo(() => `
+  /* const dragAreaClasses = useMemo(() => `
     mt-2 flex justify-center px-6 pt-5 pb-6 border-2
     ${isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'}
     border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer
-  `, [isDragging]);
+  `, [isDragging]); */
 
   return (
     <div className="space-y-2">
@@ -303,19 +303,19 @@ export default function ResumeUpload({
         <Card className={cn(isApplyPage && 'mt-[1.5rem]')}>
           <CardHeader className={cn('flex', 'flex-row', 'items-center', 'justify-between', 'space-y-0', 'pb-2', isApplyPage && 'pt-2')}>
             <div className="flex items-center gap-3">
-              {isUploading ? (
+              {/* {isUploading ? (
                 <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
-              ) : (
+              ) : ( */}
                 <FileText className="h-5 w-5 text-gray-400" />
-              )}
+              {/* )} */}
               <div className="min-h-[44px] flex flex-col justify-center">
                 {tempResume?.type === "PDF" ? (
                   <>
-                    {isUploading ? (
+                    {/* {isUploading ? (
                       <div className="space-y-2">
                         <Skeleton className="h-[16px] w-[100px] bg-gray-200" />
                       </div>
-                    ) : (
+                    ) : ( */}
                       <>
                         {tempResume.name && (
                           <p className="text-md hover:underline cursor-pointer">
@@ -334,7 +334,7 @@ export default function ResumeUpload({
                           {tempResume.size ? formatFileSize(tempResume.size) : ''}
                         </p>
                       </>
-                    )}
+                    {/* )} */}
                   </>
                 ) : (
                   <>
