@@ -40,7 +40,7 @@ export default function ResumeUpload({
   isApplyPage = false
 }: ResumeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [resumeType, setResumeType] = useState<ResumeType>(currentResume?.type || 'LINK');
+  const [resumeType, setResumeType] = useState<ResumeType>('LINK');
   const [resumeLink, setResumeLink] = useState(currentResume?.url || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadFile, isUploading } = useFileUpload();
@@ -284,12 +284,12 @@ export default function ResumeUpload({
             onValueChange={(value: ResumeType) => handleResumeTypeChange(value)}
             className="flex gap-6 mt-2"
           >
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <RadioGroupItem value="PDF" id="pdf-type" />
               <Label htmlFor="pdf-type" className="text-sm font-normal">
                 PDF 파일
               </Label>
-            </div>
+            </div> */}
             <div className="flex items-center gap-3">
               <RadioGroupItem value="LINK" id="link-type" />
               <Label htmlFor="link-type" className="text-sm font-normal">
@@ -380,7 +380,7 @@ export default function ResumeUpload({
           </CardHeader>
           {!isApplyPage && (
             <CardContent className="pt-0">
-              {resumeType === "PDF" ? (
+              {/* {resumeType === "PDF" ? (
                 <div>
                   <div
                     className={dragAreaClasses}
@@ -413,7 +413,7 @@ export default function ResumeUpload({
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : ( */}
                 <div>
                   <Input
                     id="resumeUrl"
@@ -423,7 +423,7 @@ export default function ResumeUpload({
                     className="mt-2"
                   />
                 </div>
-              )}
+              {/* )} */}
             </CardContent>
           )}
         </Card>
