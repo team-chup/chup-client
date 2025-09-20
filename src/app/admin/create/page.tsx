@@ -21,14 +21,14 @@ import { Label } from "@/components/ui/label"
 import { X, Upload, FileUp, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatFileSize } from "@/utils/formatFileSize"
-import usePostingFileUpload from "@/hooks/usePostingFileUpload"
+// import usePostingFileUpload from "@/hooks/usePostingFileUpload"
 
 export default function CreateJobPostingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { uploadFile, isUploading } = usePostingFileUpload();
-  const [isDragging, setIsDragging] = useState(false);
-  const [attachments, setAttachments] = useState<AttachmentWithFile[]>([]);
+  // const { uploadFile, isUploading } = usePostingFileUpload();
+  // const [isDragging, setIsDragging] = useState(false);
+  // const [attachments, setAttachments] = useState<AttachmentWithFile[]>([]);
 
   const formatDateForAPI = (date: Date | null, isEndDate: boolean = false): string => {
     if (!date) return "";
@@ -65,10 +65,10 @@ export default function CreateJobPostingPage() {
       
       // 첨부파일 섹션에서 업로드된 파일 처리
       const allFiles = [...uploadedFiles];
-      if (attachments.length > 0) {
+      /* if (attachments.length > 0) {
         const processedAttachments = await processFileUploads();
         allFiles.push(...processedAttachments);
-      }
+      } */
       
       const requestData: CreateJobPostingRequest = {
         companyName: formData.company,
@@ -116,7 +116,7 @@ export default function CreateJobPostingPage() {
   };
 
   // 파일 변경 처리 함수
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -141,10 +141,10 @@ export default function CreateJobPostingPage() {
     }
     
     setAttachments(newAttachments);
-  };
+  }; */
 
-  // 파일 제거 함수
-  const removeFile = (index: number) => {
+  // 파일 제거 함수 - 임시로 비활성화
+  /* const removeFile = (index: number) => {
     const newFiles = attachments.filter((_, i) => i !== index);
     setAttachments(newFiles);
   };
@@ -215,7 +215,7 @@ export default function CreateJobPostingPage() {
       toast.error("파일 업로드에 실패했습니다");
       throw error;
     }
-  };
+  }; */
 
   // 첨부파일 섹션 렌더링
   const renderAttachmentsSection = () => (
@@ -227,7 +227,7 @@ export default function CreateJobPostingPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div>
+        {/* <div>
           <Label htmlFor="attachments">파일 업로드</Label>
           <div
             className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
@@ -291,7 +291,7 @@ export default function CreateJobPostingPage() {
               </Card>
             ))}
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   );

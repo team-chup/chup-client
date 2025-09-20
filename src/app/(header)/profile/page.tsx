@@ -225,12 +225,12 @@ export default function ProfilePage() {
 
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">이력서</CardTitle>
+                <CardTitle className="flex items-center gap-2">이력서 (링크)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div>
-                    <div className="flex gap-6 mt-2">
+                    {/* <div className="flex gap-6 mt-2">
                       <div className="flex items-center gap-3">
                         <div className="h-4 w-4 rounded-full border border-primary"></div>
                         <span className="text-sm font-normal">PDF 파일</span>
@@ -239,7 +239,7 @@ export default function ProfilePage() {
                         <div className="h-4 w-4 rounded-full border border-primary"></div>
                         <span className="text-sm font-normal">링크</span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
