@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import ResumeUpload from '@/components/ResumeUpload';
 import UserForm from '@/components/UserForm';
 import { SignupRequest } from '@/types/auth';
 import { signup } from '@/api/signup';
@@ -17,11 +16,8 @@ export default function SignupPage() {
     email: '',
     studentNumber: '',
     phoneNumber: '',
-    resume: {
-      name: '',
-      type: 'LINK',
-      url: ''
-    }
+    resume: undefined,
+    portfolio: undefined
   });
 
   const isFormValid = () => {
@@ -31,10 +27,23 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'resumeUrl') {
+      setFormData(prev => ({
+        ...prev,
+        resume: value.trim() ? { name: 'LINK', url: value } : undefined
+      }));
+    } else if (name === 'portfolioUrl') {
+      setFormData(prev => ({
+        ...prev,
+        portfolio: value.trim() ? { name: 'LINK', url: value } : undefined
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,19 +79,6 @@ export default function SignupPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <UserForm formData={formData} onChange={handleChange} />
-
-            <label htmlFor="resume" className="block text-sm font-medium text-gray-700">
-              이력서
-            </label>
-            <ResumeUpload
-              currentResume={formData.resume}
-              onResumeChange={(resume) => {
-                setFormData(prev => ({
-                  ...prev,
-                  resume
-                }));
-              }}
-            />
 
             <div>
               <Button 

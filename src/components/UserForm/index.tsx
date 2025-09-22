@@ -76,6 +76,34 @@ const UserForm = ({
             placeholder="전화번호 (예: 01012345123)"
           />
         </div>
+
+        <div>
+          <label htmlFor="resumeUrl" className="block text-sm font-medium text-gray-700">
+            이력서 링크 (선택사항)
+          </label>
+          <Input
+            id="resumeUrl"
+            name="resumeUrl"
+            type="url"
+            value={(formData.resume && formData.resume.url) || ''}
+            onChange={onChange}
+            placeholder="https://drive.google.com/... 또는 https://github.com/..."
+          />
+        </div>
+
+        <div>
+          <label htmlFor="portfolioUrl" className="block text-sm font-medium text-gray-700">
+            포트폴리오 링크 (선택사항)
+          </label>
+          <Input
+            id="portfolioUrl"
+            name="portfolioUrl"
+            type="url"
+            value={(formData.portfolio && formData.portfolio.url) || ''}
+            onChange={onChange}
+            placeholder="https://portfolio.com/... 또는 https://github.com/..."
+          />
+        </div>
       </>
     );
   };

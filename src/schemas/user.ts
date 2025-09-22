@@ -35,7 +35,15 @@ export const signupSchema = z.object({
   phoneNumber: z.string()
     .regex(/^010\d{8}$/, '전화번호는 010으로 시작하는 11자리 숫자여야 합니다'),
   
-  resume: resumeSchema,
+  resume: z.object({
+    name: z.string(),
+    url: z.string().url('올바른 URL 형식이 아닙니다'),
+  }).optional(),
+  
+  portfolio: z.object({
+    name: z.string(),
+    url: z.string().url('올바른 URL 형식이 아닙니다'),
+  }).optional(),
 });
 
 export type SignupSchema = z.infer<typeof signupSchema>; 
