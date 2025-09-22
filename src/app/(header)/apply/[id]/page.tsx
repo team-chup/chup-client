@@ -15,7 +15,6 @@ import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jo
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import SuccessModal from "@/components/SuccessModal";
-import ResumeUpload from "@/components/ResumeUpload";
 
 const ApplyPage = () => {
   const params = useParams();
@@ -151,10 +150,6 @@ const ApplyPage = () => {
                   <Input value={profile?.phoneNumber} disabled className="mt-1" />
                 </div>
               </div>
-              <ResumeUpload
-                currentResume={profile?.resume}
-                isApplyPage={true}
-              />
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>안내:</strong> 개인정보 수정이 필요한 경우 프로필 페이지에서 변경해주세요.
