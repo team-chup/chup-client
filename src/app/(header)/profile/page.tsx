@@ -7,16 +7,15 @@ import { Save, Edit, FileText, Loader2, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Resume } from "@/types/user"
+import { Resume, Portfolio } from "@/types/user"
 import { Authority } from "@/types/auth"
 import { toast } from "sonner"
-import ResumeUpload from "@/components/ResumeUpload"
 import { profileSchema } from "@/schemas/user"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProfileQuery } from "@/hooks/useProfileQuery"
 import { useProfileMutation } from "@/hooks/useProfileMutation"
-import { updateUserResume } from "@/api/user"
+import { updateUserResume, updateUserPortfolio, deleteUserResume, deleteUserPortfolio } from "@/api/user"
 import { useQueryClient } from '@tanstack/react-query';
 import { Label } from "@/components/ui/label"
 import { googleLogout } from '@react-oauth/google';
@@ -30,6 +29,7 @@ type UserProfileWithResume = {
   phoneNumber: string;
   authority: Authority;
   resume?: Resume;
+  portfolio?: Portfolio;
 };
 
 const REQUIRED_FIELDS = ['name', 'studentNumber', 'email', 'phoneNumber'] as const;
@@ -41,12 +41,8 @@ interface ProfileFormData {
   studentNumber: string;
   email: string;
   phoneNumber: string;
-  resume?: {
-    name: string;
-    type: 'PDF' | 'LINK';
-    url: string;
-    size?: number;
-  };
+  resume?: Resume;
+  portfolio?: Portfolio;
 }
 
 export default function ProfilePage() {
@@ -64,7 +60,8 @@ export default function ProfilePage() {
     studentNumber: '',
     email: '',
     phoneNumber: '',
-    resume: undefined
+    resume: undefined,
+    portfolio: undefined
   });
 
   useEffect(() => {
@@ -74,7 +71,8 @@ export default function ProfilePage() {
         studentNumber: profile.studentNumber || '',
         email: profile.email || '',
         phoneNumber: profile.phoneNumber || '',
-        resume: (profile as UserProfileWithResume).resume
+        resume: (profile as UserProfileWithResume).resume,
+        portfolio: (profile as UserProfileWithResume).portfolio
       });
     }
   }, [profile]);
@@ -89,22 +87,6 @@ export default function ProfilePage() {
       setShakingFields(prev => prev.filter(f => f !== field));
     }
   }, [shakingFields]);
-
-  const handleResumeChange = useCallback(async (resume: ProfileFormData['resume']) => {
-    if (!resume) return;
-    
-    try {
-      await updateUserResume(resume);
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setFormData(prev => ({
-        ...prev,
-        resume
-      }));
-    } catch (error) {
-      console.error(error);
-      toast.error('이력서 저장에 실패했습니다.');
-    }
-  }, [queryClient]);
 
   const validateFormWithSchema = useCallback(() => {
     const result = profileSchema.safeParse({
@@ -157,6 +139,22 @@ export default function ProfilePage() {
           email: formData.email,
           phoneNumber: formData.phoneNumber
         });
+
+        if (formData.resume?.url !== profile.resume?.url) {
+          if (formData.resume?.url) {
+            await updateUserResume(formData.resume);
+          } else {
+            await deleteUserResume();
+          }
+        }
+
+        if (formData.portfolio?.url !== profile.portfolio?.url) {
+          if (formData.portfolio?.url) {
+            await updateUserPortfolio(formData.portfolio);
+          } else {
+            await deleteUserPortfolio();
+          }
+        }
       }
       
       queryClient.invalidateQueries({ queryKey: ['profile'] });
@@ -168,7 +166,7 @@ export default function ProfilePage() {
     } finally {
       setIsSaving(false);
     }
-  }, [formData, validateFormWithSchema, profile, queryClient]);
+  }, [formData, validateFormWithSchema, profile, updateProfile, updateUserResume, updateUserPortfolio, queryClient]);
 
   const handleLogout = useCallback(() => {
     googleLogout();
@@ -177,7 +175,7 @@ export default function ProfilePage() {
     router.push('/login');
   }, [router]);
 
-  if (isLoading || !formData.resume) {
+  if (isLoading) {
     return (
       <div className="bg-gray-50">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -225,36 +223,19 @@ export default function ProfilePage() {
 
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">이력서 (링크)</CardTitle>
+                <CardTitle className="flex items-center gap-2">이력서</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div>
-                    {/* <div className="flex gap-6 mt-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-4 w-4 rounded-full border border-primary"></div>
-                        <span className="text-sm font-normal">PDF 파일</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="h-4 w-4 rounded-full border border-primary"></div>
-                        <span className="text-sm font-normal">링크</span>
-                      </div>
-                    </div> */}
-                  </div>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-gray-400" />
-                        <div className="min-h-[44px] flex flex-col justify-center">
-                          <Skeleton className="h-4 w-[150px] bg-gray-200 mt-1" />
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <Skeleton className="h-[100px] w-full bg-gray-200 rounded-lg" />
-                    </CardContent>
-                  </Card>
-                </div>
+                <Skeleton className="h-[100px] w-full bg-gray-200 rounded-lg" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">포트폴리오</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-[100px] w-full bg-gray-200 rounded-lg" />
               </CardContent>
             </Card>
           </div>
@@ -366,12 +347,85 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">이력서</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResumeUpload
-                currentResume={formData.resume}
-                onResumeChange={handleResumeChange}
-                editable={true}
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="resumeUrl" className="block mb-2 font-medium text-gray-700">
+                  이력서 링크 (선택사항)
+                </Label>
+                <Input
+                  id="resumeUrl"
+                  value={formData.resume?.url || ''}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      resume: url.trim() ? { name: 'LINK', url } : undefined
+                    }));
+                  }}
+                  placeholder="https://drive.google.com/... 또는 https://github.com/..."
+                  className="w-full"
+                  disabled={!isEditing}
+                />
+              </div>
+              {formData.resume?.url && (
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <a 
+                    href={formData.resume.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    {formData.resume.url.length > 50 
+                      ? `${formData.resume.url.slice(0, 50)}...` 
+                      : formData.resume.url
+                    }
+                  </a>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">포트폴리오</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="portfolioUrl" className="block mb-2 font-medium text-gray-700">
+                  포트폴리오 링크 (선택사항)
+                </Label>
+                <Input
+                  id="portfolioUrl"
+                  value={formData.portfolio?.url || ''}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      portfolio: url.trim() ? { name: 'LINK', url } : undefined
+                    }));
+                  }}
+                  placeholder="https://portfolio.com/... 또는 https://github.com/..."
+                  className="w-full"
+                  disabled={!isEditing}
+                />
+              </div>
+              {formData.portfolio?.url && (
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <a 
+                    href={formData.portfolio.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    {formData.portfolio.url.length > 50 
+                      ? `${formData.portfolio.url.slice(0, 50)}...` 
+                      : formData.portfolio.url
+                    }
+                  </a>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

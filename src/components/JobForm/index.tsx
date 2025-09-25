@@ -314,8 +314,6 @@ export default function JobForm({ initialData, submitButtonText, onSubmit, isSub
           };
         }
         
-        // const url = await uploadFile(attachment.file);
-        // const url = await uploadPosting(attachment.file);
         const url = "";
         return {
           url,

@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getMyApplications } from "@/api/myApplications"
 import { Application } from "@/types/application"
 import { useRouter } from "next/navigation"
-import ResumeUpload from "@/components/ResumeUpload"
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([])
@@ -240,11 +239,6 @@ export default function ApplicationsPage() {
                               <span>지원일: {application.startAt}</span>
                             </div>
                           </div>
-
-                          <ResumeUpload
-                            currentResume={application.resume}
-                            isApplyPage={true}
-                          />
 
                           {application.rejectionReason && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
