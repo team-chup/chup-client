@@ -21,15 +21,11 @@ import { Label } from "@/components/ui/label"
 import { X, Upload, FileUp, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatFileSize } from "@/utils/formatFileSize"
-// import usePostingFileUpload from "@/hooks/usePostingFileUpload"
 
 export default function CreateJobPostingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const { uploadFile, isUploading } = usePostingFileUpload();
-  // const [isDragging, setIsDragging] = useState(false);
-  // const [attachments, setAttachments] = useState<AttachmentWithFile[]>([]);
-
+ㅋㅋㅋㅋㅋㅋㅋㅋ
   const formatDateForAPI = (date: Date | null, isEndDate: boolean = false): string => {
     if (!date) return "";
     
@@ -115,107 +111,7 @@ export default function CreateJobPostingPage() {
     return { isValid: true };
   };
 
-  // 파일 변경 처리 함수
-  /* const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    for (const file of files) {
-      const validationResult = validateFile(file);
-      if (!validationResult.isValid) {
-        toast.error(validationResult.errorMessage);
-        return;
-      }
-    }
-
-    const newAttachments = [...attachments];
-    
-    for (const file of files) {
-      const isDuplicate = newAttachments.some(attachment => 
-        attachment.file.name === file.name && attachment.file.size === file.size
-      );
-      
-      if (!isDuplicate) {
-        newAttachments.push({ file });
-      }
-    }
-    
-    setAttachments(newAttachments);
-  }; */
-
-  // 파일 제거 함수 - 임시로 비활성화
-  /* const removeFile = (index: number) => {
-    const newFiles = attachments.filter((_, i) => i !== index);
-    setAttachments(newFiles);
-  };
-
-  // 드래그 관련 이벤트 핸들러
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const event = {
-        target: {
-          files: files
-        }
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      handleFileChange(event);
-    }
-  };
-
-  const handleFileUploadClick = () => {
-    document.getElementById('file-upload')?.click();
-  };
-
-  // 파일 업로드 처리 함수
-  const processFileUploads = async (): Promise<AttachmentFile[]> => {
-    if (attachments.length === 0) return [];
-    
-    try {
-      const uploadPromises = attachments.map(async (attachment) => {
-        if (attachment.url) {
-          return {
-            url: attachment.url,
-            name: attachment.name || attachment.file.name
-          };
-        }
-        
-        const url = await uploadFile(attachment.file);
-        return {
-          url,
-          name: attachment.file.name
-        };
-      });
-
-      const uploadedFiles = await Promise.all(uploadPromises);
-      toast.success('모든 파일이 성공적으로 업로드되었습니다.');
-      return uploadedFiles;
-    } catch (error) {
-      console.error("파일 업로드 실패:", error);
-      toast.error("파일 업로드에 실패했습니다");
-      throw error;
-    }
-  }; */
+  
 
   // 첨부파일 섹션 렌더링
   const renderAttachmentsSection = () => (
@@ -227,71 +123,7 @@ export default function CreateJobPostingPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* <div>
-          <Label htmlFor="attachments">파일 업로드</Label>
-          <div
-            className={`mt-2 flex justify-center px-6 pt-5 pb-6 border-2 ${
-              isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-            } border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer`}
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-          >
-            <div className="space-y-1 text-center">
-              <Upload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="flex text-sm text-gray-600 items-center justify-center">
-                <span className="flex items-center gap-1">
-                  <FileUp className="h-4 w-4" />
-                  파일 선택
-                </span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  multiple
-                  className="sr-only"
-                  onChange={handleFileChange}
-                />
-                <p className="pl-1">또는 드래그 앤 드롭</p>
-              </div>
-              <p className="text-xs text-gray-500">
-                {ALLOWED_EXTENSIONS.join(', ')} 파일만 업로드 가능 (최대 10MB)
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {attachments.length > 0 && (
-          <div className="space-y-3 mt-4">
-            <Label>업로드된 파일</Label>
-            {attachments.map((attachment, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {isUploading ? (
-                        <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
-                      ) : (
-                        <FileText className="h-5 w-5 text-gray-400" />
-                      )}
-                      <div>
-                        <p className="font-medium">{attachment.name || attachment.file.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {attachment.url ? "이미 업로드된 파일" : formatFileSize(attachment.file.size)}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )} */}
+        
       </CardContent>
     </Card>
   );
