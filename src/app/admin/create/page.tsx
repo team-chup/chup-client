@@ -25,7 +25,7 @@ import { formatFileSize } from "@/utils/formatFileSize"
 export default function CreateJobPostingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-ㅋㅋㅋㅋㅋㅋㅋㅋ
+  
   const formatDateForAPI = (date: Date | null, isEndDate: boolean = false): string => {
     if (!date) return "";
     
