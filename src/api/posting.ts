@@ -59,7 +59,7 @@ export const downloadApplications = async (someId: number | string, ids: number[
   });
 
   const contentDisposition = response.headers['content-disposition'];
-  let filename = '이력서_모음.zip';
+  let filename = '이력서_링크_모음.zip';
   
   if (contentDisposition) {
     const filenameMatch = contentDisposition.match(/filename="?([^"]*)"?/);
