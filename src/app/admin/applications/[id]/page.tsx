@@ -24,7 +24,7 @@ import { getApplicationById, announceResult } from "@/api/myApplications"
 import { useJobPostingQuery } from "@/hooks/useJobPostingQuery"
 import { getLocationText } from "@/utils/jobUtils"
 import { formatDate } from "@/utils/dateUtils"
-import { forceDownload, downloadLinkAsTxt, wait } from "@/utils/downloadUtils"
+import { downloadLinkAsTxt, downloadPortfolioLinkAsTxt, wait } from "@/utils/downloadUtils"
 import { toast } from "sonner"
 import { downloadApplications } from "@/api/posting"
 
@@ -102,16 +102,28 @@ export default function ApplicationManagementPage() {
     const filename = `${applicant.name}_${applicant.studentNumber}_${position.name}_이력서`;
     
     try {
-      if (resume.type === 'LINK') {
-        downloadLinkAsTxt(resume.url, `${filename}.txt`);
-        toast.success('링크가 텍스트 파일로 다운로드되었습니다.');
-      } else {
-        await forceDownload(resume.url, `${filename}.pdf`);
-        toast.success('이력서 다운로드가 완료되었습니다.');
-      }
+      downloadLinkAsTxt(resume.url, filename);
+      toast.success('이력서 링크가 텍스트 파일로 다운로드되었습니다.');
     } catch (error) {
       console.error('이력서 다운로드 실패:', error);
-      toast.error('이력서 다운로드에 실패했습니다. 새 탭에서 열려고 시도합니다.');
+      toast.error('이력서 다운로드에 실패했습니다.');
+    }
+  };
+
+  const handleSinglePortfolioDownload = async (application: DetailedApplication) => {
+    const { applicant, position, portfolio } = application;
+    const filename = `${applicant.name}_${applicant.studentNumber}_${position.name}_포트폴리오`;
+    
+    try {
+      if (portfolio?.url) {
+        downloadPortfolioLinkAsTxt(portfolio.url, filename);
+        toast.success('포트폴리오 링크가 텍스트 파일로 다운로드되었습니다.');
+      } else {
+        toast.error('포트폴리오 정보가 없습니다.');
+      }
+    } catch (error) {
+      console.error('포트폴리오 다운로드 실패:', error);
+      toast.error('포트폴리오 다운로드에 실패했습니다.');
     }
   };
 
@@ -142,11 +154,7 @@ export default function ApplicationManagementPage() {
             const { resume, applicant, position } = app;
             const filename = `${applicant.name}_${applicant.studentNumber}_${position.name}_이력서`;
             
-            if (resume.type === 'LINK') {
-              downloadLinkAsTxt(resume.url, `${filename}.txt`);
-            } else {
-              await forceDownload(resume.url, `${filename}.pdf`);
-            }
+            downloadLinkAsTxt(resume.url, filename);
             await wait(300);
           }
           toast.success('개별 이력서 다운로드가 완료되었습니다.');
@@ -341,21 +349,47 @@ export default function ApplicationManagementPage() {
                         <p className="text-sm text-gray-600">전화번호</p>
                         <p className="font-medium">{application.applicant.phoneNumber}</p>
                       </div>
+                      {application.resume?.url && (
+                        <div>
+                          <p className="text-sm text-gray-600">이력서</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-3 text-gray-500 hover:text-gray-900 border border-gray-200"
+                            onClick={() => {
+                              if (application.resume?.url) {
+                                navigator.clipboard.writeText(application.resume.url);
+                                toast.success('이력서 링크가 복사되었습니다.');
+                              }
+                            }}
+                          >
+                            <Link className="h-4 w-4 mr-2" />
+                            링크 복사
+                          </Button>
+                        </div>
+                      )}
+                      {application.portfolio?.url && (
+                        <div>
+                          <p className="text-sm text-gray-600">포트폴리오</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-3 text-gray-500 hover:text-gray-900 border border-gray-200"
+                            onClick={() => {
+                              if (application.portfolio?.url) {
+                                navigator.clipboard.writeText(application.portfolio.url);
+                                toast.success('포트폴리오 링크가 복사되었습니다.');
+                              }
+                            }}
+                          >
+                            <Link className="h-4 w-4 mr-2" />
+                            링크 복사
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-gray-500 hover:text-gray-900"
-                        onClick={() => {
-                          navigator.clipboard.writeText(application.resume.url);
-                          toast.success('이력서 링크가 복사되었습니다.');
-                        }}
-                      >
-                        <Link className="h-4 w-4 mr-2" />
-                        <span>{application.resume.type === 'LINK' ? '이력서 링크 복사' : 'PDF 다운로드 링크 복사'}</span>
-                      </Button>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         <span>지원일: {formatDate(application.createdAt)}</span>
@@ -371,14 +405,26 @@ export default function ApplicationManagementPage() {
                     )}
 
                     <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleSingleDownload(application)}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        이력서 {application.resume.type === 'LINK' ? '링크' : ''} 다운로드
-                      </Button>
+                      {application.resume?.url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleSingleDownload(application)}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          이력서 링크 다운로드
+                        </Button>
+                      )}
+                      {application.portfolio?.url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleSinglePortfolioDownload(application)}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          포트폴리오 링크 다운로드
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" asChild>
                         <a href={`mailto:${application.applicant.email}`}>
                           <Mail className="h-4 w-4 mr-2" />

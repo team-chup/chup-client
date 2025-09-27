@@ -11,7 +11,6 @@ import { getJobPostingDetail } from "@/api/posting"
 import { getEmploymentTypeText, getLocationText, getTypeColor } from "@/utils/jobUtils"
 import { formatDate } from "@/utils/dateUtils"
 import Link from "next/link"
-import { forceDownload } from "@/utils/downloadUtils"
 import { convertUrlsToLinks } from "@/utils/textUtils"
 
 export default function CompanyDetailPage() {
@@ -115,42 +114,6 @@ export default function CompanyDetailPage() {
             </div>
           </CardContent>
         </Card>
-
-        {(posting.files ?? []).length > 0 && (
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                첨부 자료
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(posting.files ?? []).map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium text-gray-900">{file.name}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        forceDownload(file.url, file.name);
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      다운로드
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </main>
     </div>
   )

@@ -75,6 +75,7 @@ export interface DetailedApplication {
   applicant: Applicant;
   position: Position;
   resume: Resume;
+  portfolio?: Resume;
   status: ApplicationStatus;
   result?: ApplicationResult;
   createdAt: string;
