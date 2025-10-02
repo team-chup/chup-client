@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const resumeSchema = z.object({
   name: z.string(),
-  type: z.enum(['PDF', 'LINK']),
+  type: z.enum(['LINK']),
   url: z.string().min(1, '올바르지 않은 이력서입니다.'),
 });
 
